@@ -8,5 +8,6 @@
 	<classpathentry kind="var" path="ICY_PLUGINS/adufour/ezplug/EzPlug.jar"/>
 	<classpathentry kind="var" path="ICY_PLUGINS/nchenouard/spot/DetectionResult.jar"/>
 	<classpathentry kind="var" path="ICY_PLUGINS/fab/ROITagger/ROITagger.jar"/>
+	<classpathentry kind="var" path="ICY_PLUGINS/stef/library/VecmathPlugin.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
