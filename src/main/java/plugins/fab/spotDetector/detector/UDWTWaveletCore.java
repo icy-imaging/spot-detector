@@ -692,7 +692,7 @@ public class UDWTWaveletCore {
 
 		ImageMathInfo imageCaract = avesigma( data , mask );
 
-		double dcoeff[] = new double[ getNumberOfMaxEnabledScale() ]; // avant fixé a 5.
+		double dcoeff[] = new double[ getNumberOfMaxEnabledScale() ]; // was fixed to 5.
 
 		for ( int i = 0 ; i < getNumberOfMaxEnabledScale() ; i++ )
 		{
@@ -821,8 +821,7 @@ public class UDWTWaveletCore {
 	}
 
 
-	// FIXME : changer la structure des detections 4D et en faire un pool de detection pour
-	//acceder plus vite à toutes les detections d'un temps ou d'un temps et d'un z
+	// FIXME : change the structure of 4D detections into a detection pool for faster access to all the detections of a time or a time and a z
 
 
 	private ArrayList<DetectionSpot> convert2detectionList( Sequence originalSequence ,

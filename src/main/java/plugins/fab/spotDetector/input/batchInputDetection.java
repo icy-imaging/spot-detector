@@ -228,7 +228,7 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
 //			StartComputeDetectionThread();
 //			//computeWaveletOnChannelRed( file , new File( file.getAbsolutePath()+"_t.png" ) );
 //
-//			// Check si la detection est terminée.
+//			// Check if detection is done.
 //			System.out.print("Processing..");
 //			while ( computeDetectionThread.isAlive() )
 //			{
@@ -370,7 +370,7 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
 //				StartComputeDetectionThread();
 //				//computeWaveletOnChannelRed( file , new File( file.getAbsolutePath()+"_t.png" ) );
 //
-//				// Check si la detection est terminée.
+//				// Check if detection is done.
 //				System.out.print("Processing..");
 //				while ( computeDetectionThread.isAlive() )
 //				{

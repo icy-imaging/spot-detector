@@ -58,7 +58,7 @@ public class deClusterFiltering extends FilteringDetectionAbstract {
 		return surface;
 	}
     
-	// deux spots juste l'un à coté de l'autre décalé de 1 pixel.
+	// two spots right next to each other offset by 1 pixel.
 	private double getSurfaceOfTwoContiguousSpot( double spotRay ) {
 
 		int bound = (int) Math.ceil(spotRay+1)+1;
@@ -219,9 +219,9 @@ public class deClusterFiltering extends FilteringDetectionAbstract {
 		int surfaceOfOneSpot = (int)getSurfaceOfOneSpot( spotRay );
 		int surfaceOfTwoContiguousSpot = (int)getSurfaceOfTwoContiguousSpot( spotRay );
 		
-		System.out.println("surface d'un spot: " + surfaceOfOneSpot );
-		System.out.println("surface de 2 spots collés: " + surfaceOfTwoContiguousSpot );
-		System.out.println("difference entre les 2:" + (surfaceOfTwoContiguousSpot-surfaceOfOneSpot) );
+		System.out.println("surface of one spot: " + surfaceOfOneSpot );
+		System.out.println("surface of 2 glued spots: " + surfaceOfTwoContiguousSpot );
+		System.out.println("difference between the 2:" + (surfaceOfTwoContiguousSpot-surfaceOfOneSpot) );
 		
 
 		int highValue = (int) surfaceOfOneSpot;
