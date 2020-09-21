@@ -96,7 +96,7 @@ public class BasicDetectionPainter implements Painter {
 
 					for ( DetectionSpot detectionSpot : detectionArrayList )
 					{
-						// FIXME : profiter de la structure d'un groupe de point en hashmap pour trouver directement les points à afficher !
+						// FIXME : take advantage of the structure of a group of points in hashmap to find directly the points to display!
 
 						if ( currentT != detectionSpot.getT() ) continue;
 						if ( !projectDetection )
@@ -307,7 +307,7 @@ public class BasicDetectionPainter implements Painter {
 
 				for ( DetectionSpot detectionSpot : detectionArrayList )
 				{
-					// FIXME : profiter de la structure d'un groupe de point en hashmap pour trouver directement les points à afficher !
+					// FIXME : take advantage of the structure of a group of points in hashmap to find directly the points to display!
 
 //					if ( currentT != detectionSpot.getT() ) continue;
 //					if ( currentZ != detectionSpot.getMassCenter().z ) continue;
