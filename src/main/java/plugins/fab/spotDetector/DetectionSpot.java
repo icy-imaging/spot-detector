@@ -20,14 +20,14 @@ package plugins.fab.spotDetector;
 
 import java.util.ArrayList;
 
+public class DetectionSpot
+{
 
-public class DetectionSpot {
+    /**
+     * mass center of detection
+     */
+    Point3D massCenter;
 
-	/**
-	 * mass center of detection
-	 */
-	Point3D massCenter;
-	
     /**
      * Point contained in detection
      */
@@ -60,56 +60,75 @@ public class DetectionSpot {
     int t;
 
     /**
+     * Set time position
      * 
      * @param t
+     *        time position
      */
-	public void setT(int t) {
-		this.t = t;	
-	}
+    public void setT(int t)
+    {
+        this.t = t;
+    }
 
-	public Point3D getMassCenter() {
-		
-		if ( massCenter == null ) computeMassCenter();
-		return massCenter;
-	}
+    /**
+     * @return mass center position
+     */
+    public Point3D getMassCenter()
+    {
 
-	public int getT() {		
-		return t;
-	}
+        if (massCenter == null)
+            computeMassCenter();
+        return massCenter;
+    }
 
-	public void computeMassCenter() {
-		
-		massCenter = new Point3D();
-		if ( points.size() == 0 ) return;
-		
-		double x=0;
-		double y=0;
-		double z=0;
-		for ( Point3D p : points )
-		{
-			x+= p.x;
-			y+= p.y;
-			z+= p.z;			
-		}
-		x /= points.size();
-		y /= points.size();
-		z /= points.size();
-		
-		massCenter.x = x;
-		massCenter.y = y;
-		massCenter.z = z;
-		
-		
-		
-	}
+    /**
+     * @return time position
+     */
+    public int getT()
+    {
+        return t;
+    }
 
-	public void setMassCenter(Point3D point3d) {
-		massCenter.x = point3d.x;
-		massCenter.y = point3d.y;
-		massCenter.z = point3d.z;
-	}
+    /**
+     * Compute mass center position of the spot
+     */
+    public void computeMassCenter()
+    {
 
-	
-	
-	
+        massCenter = new Point3D();
+        if (points.size() == 0)
+            return;
+
+        double x = 0;
+        double y = 0;
+        double z = 0;
+        for (Point3D p : points)
+        {
+            x += p.x;
+            y += p.y;
+            z += p.z;
+        }
+        x /= points.size();
+        y /= points.size();
+        z /= points.size();
+
+        massCenter.x = x;
+        massCenter.y = y;
+        massCenter.z = z;
+
+    }
+
+    /**
+     * Set mass center position
+     * 
+     * @param point3d
+     *        position to set
+     */
+    public void setMassCenter(Point3D point3d)
+    {
+        massCenter.x = point3d.x;
+        massCenter.y = point3d.y;
+        massCenter.z = point3d.z;
+    }
+
 }
