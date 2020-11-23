@@ -77,25 +77,24 @@ public class SpotDetector extends PluginActionable implements TreeSelectionListe
     ColocalizationPanel colocalizationPanel = new ColocalizationPanel(this);
     OutPutPanel outputPanel = new OutPutPanel(this);
     DetectorPanel detectorPanel = new DetectorPanel(this);
-    DisplayDetectionPanel displayDetectionPanel = new DisplayDetectionPanel( this );
+    DisplayDetectionPanel displayDetectionPanel = new DisplayDetectionPanel(this);
     FilteringPanel filteringPanel = new FilteringPanel(this);
 
     public ArrayList<GeneralSpotDetectionPanel> getSpotModulePanelArrayList()
     {
-        return new ArrayList<GeneralSpotDetectionPanel>( spotModulePanelArrayList );
+        return new ArrayList<GeneralSpotDetectionPanel>(spotModulePanelArrayList);
     }
-
 
     private void buildDetectionModulePanelArrayList()
     {
         spotModulePanelArrayList.clear();
-       spotModulePanelArrayList.add(inputPanel); 		// Select source
-        spotModulePanelArrayList.add(preProcessPanel);  // Select channel
+        spotModulePanelArrayList.add(inputPanel); // Select source
+        spotModulePanelArrayList.add(preProcessPanel); // Select channel
         spotModulePanelArrayList.add(detectorPanel); // Detector
-//        //spotModulePanelArrayList.add(new DeClusteringPanel(this)); // Desclusturing ( should be included in post processing )
-        spotModulePanelArrayList.add(roiPanel);			// Select roi / create ROI
-        spotModulePanelArrayList.add( filteringPanel ); // Geometric filtering
-        //spotModulePanelArrayList.add(colocalizationPanel); // later on
+        // //spotModulePanelArrayList.add(new DeClusteringPanel(this)); // Desclusturing ( should be included in post processing )
+        spotModulePanelArrayList.add(roiPanel); // Select roi / create ROI
+        spotModulePanelArrayList.add(filteringPanel); // Geometric filtering
+        // spotModulePanelArrayList.add(colocalizationPanel); // later on
         spotModulePanelArrayList.add(outputPanel); // image witness output and data
         spotModulePanelArrayList.add(displayDetectionPanel);
     }
@@ -135,32 +134,32 @@ public class SpotDetector extends PluginActionable implements TreeSelectionListe
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
         rightPanel.removeAll();
 
-        if ( node == rootWizzard )
+        if (node == rootWizzard)
         {
-        	//System.out.println("wizard");
-        	rightPanel.add( settingPanel , BorderLayout.CENTER );
-//        	rightPanel.validate();
-        	rightPanel.updateUI();
-//        	rightScrollPane.validate();
-//        	rightPanel.repaint();
+            // System.out.println("wizard");
+            rightPanel.add(settingPanel, BorderLayout.CENTER);
+            // rightPanel.validate();
+            rightPanel.updateUI();
+            // rightScrollPane.validate();
+            // rightPanel.repaint();
         }
 
         for (GeneralSpotDetectionPanel pp : spotModulePanelArrayList)
         {
             if (pp.getNode() == node)
             {
-//                for (GeneralSpotDetectionPanel preferencePanel : spotModulePanelArrayList)
-//                {
-//                    rightPanel.add(preferencePanel);
-//                    preferencePanel.setVisible(false);
-//                }
-//                pp.setVisible(true);
-            	rightPanel.add( pp , BorderLayout.CENTER );
-            	pp.setVisible( true );
-            	rightPanel.updateUI();
-//            	rightScrollPane.validate();
-//            	rightPanel.validate();
-//            	rightPanel.repaint();
+                // for (GeneralSpotDetectionPanel preferencePanel : spotModulePanelArrayList)
+                // {
+                // rightPanel.add(preferencePanel);
+                // preferencePanel.setVisible(false);
+                // }
+                // pp.setVisible(true);
+                rightPanel.add(pp, BorderLayout.CENTER);
+                pp.setVisible(true);
+                rightPanel.updateUI();
+                // rightScrollPane.validate();
+                // rightPanel.validate();
+                // rightPanel.repaint();
             }
 
         }
@@ -181,20 +180,21 @@ public class SpotDetector extends PluginActionable implements TreeSelectionListe
     @Override
     public void run()
     {
-//    	new ToolTipFrame(
-//    			"<html>"+
-//    			"<br>Due to a lot of messages in the forum :)," +
-//    			"<br>the plugin has slightly evolved since last version:"+
-//    			"<br>"+
-//    			"<br><b>Important changes:</b>"+
-//    			"<br><li>Export settings: export as an image, binary image, excel are now disabled by default."+
-//    			"<br><li>Bloc: detection as ROIs are now exported."+
-//    			"</html>"
-//    			);
+        // new ToolTipFrame(
+        // "<html>"+
+        // "<br>Due to a lot of messages in the forum :)," +
+        // "<br>the plugin has slightly evolved since last version:"+
+        // "<br>"+
+        // "<br><b>Important changes:</b>"+
+        // "<br><li>Export settings: export as an image, binary image, excel are now disabled by default."+
+        // "<br><li>Bloc: detection as ROIs are now exported."+
+        // "</html>"
+        // );
 
         mainPanel = GuiUtil.generatePanel();
 
-        icyFrame = GuiUtil.generateTitleFrame( "Spot Detector", mainPanel, new Dimension(600, 120), true, true, true, true );
+        icyFrame = GuiUtil.generateTitleFrame("Spot Detector", mainPanel, new Dimension(600, 120), true, true, true,
+                true);
 
         buildDetectionModulePanelArrayList();
 
@@ -208,16 +208,16 @@ public class SpotDetector extends PluginActionable implements TreeSelectionListe
             rootSettings.add(pp.getNode());
         }
 
-        //root.add( rootWizzard );
-        root.add( rootSettings );
+        // root.add( rootWizzard );
+        root.add(rootSettings);
 
-        tree = new JTree( root );
+        tree = new JTree(root);
 
-        tree.setRootVisible( false );
+        tree.setRootVisible(false);
 
-        for ( int row = 0 ; row < tree.getRowCount() ; row++) // Expand tree
+        for (int row = 0; row < tree.getRowCount(); row++) // Expand tree
         {
-        	tree.expandRow( row );
+            tree.expandRow(row);
         }
 
         tree.addTreeSelectionListener(this);
@@ -227,59 +227,58 @@ public class SpotDetector extends PluginActionable implements TreeSelectionListe
 
         mainPanel.setLayout(new BorderLayout());
 
-      //  treeScrollPane.setPreferredSize(new Dimension(200, 100));
+        // treeScrollPane.setPreferredSize(new Dimension(200, 100));
         treeScrollPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-        actionPanel.setLayout( new BorderLayout() );
+        actionPanel.setLayout(new BorderLayout());
 
-        actionPanel.add( startButton , BorderLayout.EAST );
-        actionPanel.add( helpButton , BorderLayout.WEST );
+        actionPanel.add(startButton, BorderLayout.EAST);
+        actionPanel.add(helpButton, BorderLayout.WEST);
 
-
-        helpButton.addActionListener( this );
+        helpButton.addActionListener(this);
 
         startButton.addActionListener(this);
 
         leftPanel.setLayout(new BorderLayout());
         leftPanel.add(treeScrollPane, BorderLayout.CENTER);
-        //leftPanel.add(actionPanel, BorderLayout.SOUTH);
+        // leftPanel.add(actionPanel, BorderLayout.SOUTH);
 
         rightScrollPane = new JScrollPane(rightPanel);
 
         mainPanel.add(leftPanel, BorderLayout.WEST);
-        //mainPanel.add(rightPanel, BorderLayout.CENTER);
+        // mainPanel.add(rightPanel, BorderLayout.CENTER);
         mainPanel.add(rightScrollPane, BorderLayout.CENTER);
-        mainPanel.add(actionPanel, BorderLayout.SOUTH );
-        //mainPanel.add(GuiUtil.besidesPanel(new Help("ICY Preferences").getHelpButton("Help")), BorderLayout.SOUTH);
+        mainPanel.add(actionPanel, BorderLayout.SOUTH);
+        // mainPanel.add(GuiUtil.besidesPanel(new Help("ICY Preferences").getHelpButton("Help")), BorderLayout.SOUTH);
 
-        rightPanel.setLayout( new BorderLayout() );
+        rightPanel.setLayout(new BorderLayout());
         rightPanel.removeAll();
-     //   rightPanel.setLayout( new BorderLayout() );
+        // rightPanel.setLayout( new BorderLayout() );
 
-//        for (GeneralSpotDetectionPanel preferencePanel : spotModulePanelArrayList)
-//        {
-//        	//rightPanel.add( preferencePanel , BorderLayout.CENTER );
-//            rightPanel.add( preferencePanel);
-//            preferencePanel.setVisible(false);
-//        }
+        // for (GeneralSpotDetectionPanel preferencePanel : spotModulePanelArrayList)
+        // {
+        // //rightPanel.add( preferencePanel , BorderLayout.CENTER );
+        // rightPanel.add( preferencePanel);
+        // preferencePanel.setVisible(false);
+        // }
 
-        //reBuildOutPutPanel();
+        // reBuildOutPutPanel();
 
-        //spotModulePanelArrayList.get(0).setVisible(true);
+        // spotModulePanelArrayList.get(0).setVisible(true);
         rightPanel.removeAll();
-        rightPanel.add( settingPanel );
+        rightPanel.add(settingPanel);
         rightPanel.revalidate();
         rightScrollPane.revalidate();
 
         icyFrame.addToMainDesktopPane();
-        icyFrame.setSize( new Dimension( 512, 480 ) );
-        //icyFrame.pack();
+        icyFrame.setSize(new Dimension(512, 480));
+        // icyFrame.pack();
         icyFrame.center();
         icyFrame.toFront();
 
         new TagPainterManager();
 
-        icyFrame.addFrameListener( this );
+        icyFrame.addFrameListener(this);
     }
 
     ComputationThread computationThread = null;
@@ -289,12 +288,12 @@ public class SpotDetector extends PluginActionable implements TreeSelectionListe
     {
         if (e.getSource() == startButton)
         {
-        	startComputation( true , true );
+            startComputation(true, true);
         }
 
-        if ( e.getSource() == helpButton )
+        if (e.getSource() == helpButton)
         {
-        	NetworkUtil.openBrowser( getDescriptor().getWeb() );
+            NetworkUtil.openBrowser(getDescriptor().getWeb());
         }
 
     }
@@ -303,146 +302,175 @@ public class SpotDetector extends PluginActionable implements TreeSelectionListe
      * @param performSaveOperation
      * @param waitForComputationThreadAndLaunch
      */
-    private void startComputation( boolean performSaveOperation, boolean waitForComputationThreadAndLaunch )
+    private void startComputation(boolean performSaveOperation, boolean waitForComputationThreadAndLaunch)
     {
-    	if ( computationThread != null && computationThread.busy )
-    	{
-    		return;
-    	}
+        if (computationThread != null && computationThread.busy)
+        {
+            return;
+        }
 
-    	computationThread = new ComputationThread( );
-    	computationThread.performSaveOperation = performSaveOperation;
-    	computationThread.start();
+        computationThread = new ComputationThread();
+        computationThread.performSaveOperation = performSaveOperation;
+        computationThread.start();
     }
 
     /**
-     *
+     * Request recomputation of detection
+     * 
      * @param performSaveOperation
-     * @param waitForComputationThreadAndLaunch : if true, guarantee that this operation will be performed.
+     *        perform save operation
+     * @param waitForComputationThreadAndLaunch
+     *        if true, guarantee that this operation will be performed.
      */
-    public void detectionModuleRequestRecompute( boolean performSaveOperation, boolean waitForComputationThreadAndLaunch )
+    public void detectionModuleRequestRecompute(boolean performSaveOperation, boolean waitForComputationThreadAndLaunch)
     {
-//    	System.out.println("************************************** Module request recomputation : " + waitForComputationThreadAndLaunch );
-    	startComputation( performSaveOperation , waitForComputationThreadAndLaunch );
+        // System.out.println("************************************** Module request recomputation : " + waitForComputationThreadAndLaunch );
+        startComputation(performSaveOperation, waitForComputationThreadAndLaunch);
     }
 
     class ComputationThread extends Thread
     {
-    	public boolean performSaveOperation;
-		GlobalDetectionToken gdt ;
-		boolean busy = true;
+        public boolean performSaveOperation;
+        GlobalDetectionToken gdt;
+        boolean busy = true;
 
-    	@Override
-    	public void run() {
+        @Override
+        public void run()
+        {
 
-    		AnnounceFrame annonceFrame = new AnnounceFrame("Computation started");
+            AnnounceFrame annonceFrame = new AnnounceFrame("Computation started");
 
-    		ThreadUtil.invokeNow( new Runnable() {
-				@Override
-				public void run() {
-					startButton.setEnabled( false );
-				}
-			});
+            ThreadUtil.invokeNow(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    startButton.setEnabled(false);
+                }
+            });
 
-    		GlobalDetectionToken gdt = new GlobalDetectionToken();
+            GlobalDetectionToken gdt = new GlobalDetectionToken();
 
-    		try
-    		{
-    			inputPanel.process( gdt );
+            try
+            {
+                inputPanel.process(gdt);
 
-    			if ( gdt.inputSequence == null )
-    			{
-    				new FailedAnnounceFrame( "No input sequence found" );
-    				return;
-    			}
+                if (gdt.inputSequence == null)
+                {
+                    new FailedAnnounceFrame("No input sequence found");
+                    return;
+                }
 
-    			preProcessPanel.process( gdt );
+                preProcessPanel.process(gdt);
 
-    			detectorPanel.process( gdt );
+                detectorPanel.process(gdt);
 
-    			roiPanel.process( gdt );
+                roiPanel.process(gdt);
 
-    			filteringPanel.process( gdt );
+                filteringPanel.process(gdt);
 
-    			displayDetectionPanel.process( gdt );
+                displayDetectionPanel.process(gdt);
 
-//    			// Creates Output. Should be changed to let all piece create their own results
-    			if ( performSaveOperation )
-    			{
-    				outputPanel.process( gdt );
-    			}
-    		}
-    		catch ( Exception e )
-    		{
-    			e.printStackTrace();
-    		}
-    		finally
-    		{
-    			annonceFrame.close();
-    			ThreadUtil.invokeNow( new Runnable() {
-    				@Override
-    				public void run() {
-    					startButton.setEnabled( true );
-    				}
-    			});
-    			busy =false;
-    			gdt.fireDetectionFinished();
-    		}
-    	}
+                // // Creates Output. Should be changed to let all piece create their own results
+                if (performSaveOperation)
+                {
+                    outputPanel.process(gdt);
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+            finally
+            {
+                annonceFrame.close();
+                ThreadUtil.invokeNow(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        startButton.setEnabled(true);
+                    }
+                });
+                busy = false;
+                gdt.fireDetectionFinished();
+            }
+        }
     }
 
     public void fireChange(InputPanel inputPanel)
     {
 
-//        System.out.println("Fire change");
+        // System.out.println("Fire change");
 
-        //reBuildOutPutPanel();
-
-    }
-
-
-    @Override
-    public void icyFrameClosed(IcyFrameEvent e) {
-
-    	// will remove painter from the display detection Panel
-    	displayDetectionPanel.close();
+        // reBuildOutPutPanel();
 
     }
 
+    @Override
+    public void icyFrameClosed(IcyFrameEvent e)
+    {
 
+        // will remove painter from the display detection Panel
+        displayDetectionPanel.close();
+
+    }
 
     @Override
-	public void icyFrameActivated(IcyFrameEvent e) {}
-	@Override
-	public void icyFrameClosing(IcyFrameEvent e) {}
-	@Override
-	public void icyFrameDeactivated(IcyFrameEvent e) {}
-	@Override
-	public void icyFrameDeiconified(IcyFrameEvent e) {}
-	@Override
-	public void icyFrameExternalized(IcyFrameEvent e) {}
-	@Override
-	public void icyFrameIconified(IcyFrameEvent e) {}
-	@Override
-	public void icyFrameInternalized(IcyFrameEvent e) {}
-	@Override
-	public void icyFrameOpened(IcyFrameEvent e) {}
+    public void icyFrameActivated(IcyFrameEvent e)
+    {
+    }
 
+    @Override
+    public void icyFrameClosing(IcyFrameEvent e)
+    {
+    }
 
-	public void setDetector( PluginDescriptor detectorPluginDescriptorClass ) {
+    @Override
+    public void icyFrameDeactivated(IcyFrameEvent e)
+    {
+    }
 
-		detectorPanel.setDetectorPlugin( detectorPluginDescriptorClass );
+    @Override
+    public void icyFrameDeiconified(IcyFrameEvent e)
+    {
+    }
 
-	}
+    @Override
+    public void icyFrameExternalized(IcyFrameEvent e)
+    {
+    }
 
-//    /**
-//     * Build the outPutPanel
-//     */
-//    private void reBuildOutPutPanel()
-//    {
-//
-//        outputPanel.refresh();
-//
-//    }
+    @Override
+    public void icyFrameIconified(IcyFrameEvent e)
+    {
+    }
+
+    @Override
+    public void icyFrameInternalized(IcyFrameEvent e)
+    {
+    }
+
+    @Override
+    public void icyFrameOpened(IcyFrameEvent e)
+    {
+    }
+
+    public void setDetector(PluginDescriptor detectorPluginDescriptorClass)
+    {
+
+        detectorPanel.setDetectorPlugin(detectorPluginDescriptorClass);
+
+    }
+
+    // /**
+    // * Build the outPutPanel
+    // */
+    // private void reBuildOutPutPanel()
+    // {
+    //
+    // outputPanel.refresh();
+    //
+    // }
 
 }
