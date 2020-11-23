@@ -10,7 +10,7 @@
         <version>1.0.4</version>
     </parent>
 
-    <artifactId>icy-spot-detector</artifactId>
+    <artifactId>spot-detector</artifactId>
     <version>1.7.1</version>
 
     <packaging>jar</packaging>
