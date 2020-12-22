@@ -18,12 +18,6 @@
  */
 package plugins.fab.spotDetector.filtering;
 
-import icy.file.xls.XlsManager;
-import icy.gui.util.ComponentUtil;
-import icy.gui.util.GuiUtil;
-import icy.roi.ROI2D;
-import icy.util.XLSUtil;
-
 import java.util.ArrayList;
 
 import javax.swing.Box;
@@ -31,8 +25,11 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
+import icy.gui.util.ComponentUtil;
+import icy.gui.util.GuiUtil;
+import icy.roi.ROI;
+import icy.util.XLSUtil;
 import jxl.write.WritableSheet;
-
 import plugins.fab.spotDetector.DetectionSpot;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 
@@ -65,7 +62,7 @@ public class SizeFiltering extends FilteringDetectionAbstract
 		//System.out.println("Size filtering...");
 		
 		// Filter the roi dataset
-		for ( ROI2D roi : gdt.roi2detection.keySet() )
+		for ( ROI roi : gdt.roi2detection.keySet() )
 		{
 			ArrayList<DetectionSpot> detection = gdt.roi2detection.get( roi );
 			ArrayList<DetectionSpot> detectionCopy = new ArrayList<DetectionSpot> ( detection );

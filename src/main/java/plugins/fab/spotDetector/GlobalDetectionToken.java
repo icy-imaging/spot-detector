@@ -18,13 +18,11 @@
  */
 package plugins.fab.spotDetector;
 
-import icy.roi.ROI;
-import icy.roi.ROI2D;
-import icy.sequence.Sequence;
-
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import icy.roi.ROI;
+import icy.sequence.Sequence;
 
 
 /**
@@ -61,7 +59,7 @@ public class GlobalDetectionToken
 	 * Result of detection by ROI
 	 * filled by the ROI Processor
 	 */
-	public HashMap<ROI2D, ArrayList<DetectionSpot>> roi2detection;
+	public HashMap<ROI, ArrayList<DetectionSpot>> roi2detection;
 
 	// FIXME: should be removed. debug only
 	public Sequence binarySequence;

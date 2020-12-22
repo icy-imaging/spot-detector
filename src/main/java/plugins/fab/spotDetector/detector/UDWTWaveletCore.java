@@ -1,5 +1,6 @@
 package plugins.fab.spotDetector.detector;
 
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +10,7 @@ import javax.vecmath.Point3i;
 import icy.gui.dialog.MessageDialog;
 import icy.image.IcyBufferedImage;
 import icy.roi.BooleanMask2D;
+import icy.roi.ROI;
 import icy.sequence.Sequence;
 import icy.sequence.VolumetricImage;
 import icy.type.TypeUtil;
@@ -132,7 +134,6 @@ public class UDWTWaveletCore
             ArrayList<UDWTScale> UDWTScaleArrayList, Sequence sequenceIn, boolean detectNegative,
             boolean useROIforWATcomputation, boolean force2DWaveletsFor3D)
     {
-
         this.UDWTScaleArrayList = UDWTScaleArrayList;
 
         // display UDWTScaleArrayList for debug
@@ -161,37 +162,16 @@ public class UDWTWaveletCore
         binarySequence = new Sequence();
         binarySequence.setName("Binary Sequence"); // Check if this name already exists and change it if needed.
 
-        // build mask with roi.
-        boolean[] mask = null;
+        final List<ROI> rois = new ArrayList<>();
+        final Rectangle bounds = sequenceIn.getBounds2D();
+
+        // rois used for WAT computation ?
         if (useROIforWATcomputation)
         {
-            System.out.println("nb roi: " + sequenceIn.getROI2Ds().size());
-
-            BooleanMask2D bm2D;
-
-            if (sequenceIn.getROI2Ds().size() == 0)
-            {
-                bm2D = new ROI2DRectangle(sequenceIn.getBounds()).getAsBooleanMask();
-            }
-            else
-            {
-                bm2D = BooleanMask2D.getUnionBooleanMask(sequenceIn.getROI2Ds());
-            }
-
-            bm2D.setBounds(sequenceIn.getBounds());
-            mask = bm2D.mask;
-
-            // if ( bm2D != null )
-            // {
-            // System.out.println("bm2D is not null");
-            //
-            //
-            // bm2D = new ROI2DRectangle(sequenceIn.getBounds() ).getAsBooleanMask();
-            //
-            //// bm2D =
-            //// bm2D.setBounds( sequenceIn.getBounds() ) ;
-            // mask = bm2D.mask;
-            // }
+            rois.addAll(sequenceIn.getROIs());
+            // by default we use Sequence bounds
+            if (rois.isEmpty())
+                rois.add(new ROI2DRectangle(bounds));
         }
 
         //
@@ -200,7 +180,6 @@ public class UDWTWaveletCore
 
         if (inputSequence.getSizeZ() == 1)
         {
-
             {
                 B3SplineUDWT waveletTransform = new B3SplineUDWT();
                 if (waveletTransform.isNumberOfScaleOkForImage2D(inputSequence.getSizeX(), inputSequence.getSizeY(),
@@ -218,8 +197,10 @@ public class UDWTWaveletCore
 
                 if (image != null)
                 {
-                    // compute scales
+                    // build boolean mask for this frame
+                    final boolean[] mask = buildBinaryMask(bounds, rois, t, 0);
 
+                    // compute scales
                     final float dataIn[] = Array1DUtil.arrayToFloatArray(image.getDataXY(0), image.isSignedDataType());
                     // decompose the image
                     B3SplineUDWT waveletTransform = new B3SplineUDWT();
@@ -254,7 +235,6 @@ public class UDWTWaveletCore
                         }
 
                         filter_wat(coefficients[i], i, inputSequence.getWidth(), inputSequence.getHeight(), mask);
-
                     }
 
                     // TODO: Instead of putting it to residual image 0 , remove it from reconstruction
@@ -332,6 +312,8 @@ public class UDWTWaveletCore
 
                 for (int z = 0; z < sequenceIn.getSizeZ(); z++)
                 {
+                    // build boolean mask for this frame / slice
+                    final boolean[] mask = buildBinaryMask(bounds, rois, t, z);
 
                     // IcyBufferedImage image = inputSequence.getFirstImage();
                     IcyBufferedImage image = inputSequence.getImage(t, z);
@@ -614,6 +596,12 @@ public class UDWTWaveletCore
 
                 // Filtering
 
+                final boolean[][] masks = new boolean[inputSequence.getSizeZ()][];
+
+                // build boolean masks for all slices
+                for (int z = 0; z < masks.length; z++)
+                    masks[z] = buildBinaryMask(bounds, rois, t, z);
+
                 for (int scale = 0; scale < coefficients.length - 1; scale++)
                 {
                     for (int z = 0; z < coefficients[scale].length; z++)
@@ -627,7 +615,7 @@ public class UDWTWaveletCore
                         }
 
                         filter_wat(coefficients[scale][z], scale, inputSequence.getWidth(), inputSequence.getHeight(),
-                                mask);
+                                masks[z]);
                     }
                 }
 
@@ -704,6 +692,20 @@ public class UDWTWaveletCore
 
         return detectionList;
 
+    }
+
+    private boolean[] buildBinaryMask(Rectangle bounds, List<ROI> rois, int t, int z)
+    {
+        if (rois.isEmpty())
+            return null;
+
+        final BooleanMask2D result = new BooleanMask2D(bounds, new boolean[bounds.width * bounds.height]);
+
+        // merge all masks from wanted position
+        for (ROI roi : rois)
+            result.add(roi.getBooleanMask2D(z, t, -1, true));
+
+        return result.mask;
     }
 
     /**

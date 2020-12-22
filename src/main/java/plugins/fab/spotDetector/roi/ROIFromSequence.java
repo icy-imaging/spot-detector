@@ -18,18 +18,7 @@
  */
 package plugins.fab.spotDetector.roi;
 
-import icy.file.xls.XlsManager;
-import icy.gui.main.MainAdapter;
-import icy.gui.main.MainEvent;
-import icy.gui.util.GuiUtil;
-import icy.main.Icy;
-import icy.roi.ROI2D;
-import icy.roi.ROI2DRectangle;
-import icy.sequence.Sequence;
-import icy.util.XMLUtil;
-
 import java.awt.Color;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -38,185 +27,155 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.border.TitledBorder;
 
+import icy.gui.main.MainAdapter;
+import icy.gui.main.MainEvent;
+import icy.gui.util.GuiUtil;
+import icy.main.Icy;
+import icy.roi.ROI;
+import icy.roi.ROI2D;
+import icy.sequence.Sequence;
 import jxl.write.WritableSheet;
-
-import ome.xml.model.ROI;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import plugins.fab.spotDetector.DetectionSpot;
 import plugins.fab.spotDetector.GlobalDetectionToken;
+import plugins.kernel.roi.roi2d.ROI2DRectangle;
 
 public class ROIFromSequence extends ROIDetectionAbstract
 {
-	JLabel currentSequenceNameLabel = new JLabel();
-	Color labelDefaultColor = null;
+    JLabel currentSequenceNameLabel = new JLabel();
+    Color labelDefaultColor = null;
 
-	public ROIFromSequence()
-	{
-		//getPanel().add(new JLabel("from sequence"));
+    public ROIFromSequence()
+    {
+        // getPanel().add(new JLabel("from sequence"));
 
-		//getPanel().add(new JLabel("Existing ROIs are used to perform the computation"));
+        // getPanel().add(new JLabel("Existing ROIs are used to perform the computation"));
 
-		getPanel().setLayout( new BoxLayout( getPanel() , BoxLayout.PAGE_AXIS ) );
-		getPanel().setBorder( new TitledBorder( "use ROI in current sequence" ) );
+        getPanel().setLayout(new BoxLayout(getPanel(), BoxLayout.PAGE_AXIS));
+        getPanel().setBorder(new TitledBorder("use ROI in current sequence"));
 
-		getPanel().add( GuiUtil.createLineBoxPanel( Box.createVerticalGlue() ) );
-		getPanel().add( GuiUtil.createLineBoxPanel( new JLabel("Current sequence input:") ) );
-		getPanel().add( GuiUtil.createLineBoxPanel( Box.createVerticalStrut( 10 ) ) );
-		getPanel().add( GuiUtil.createLineBoxPanel( currentSequenceNameLabel ) );
-		getPanel().add( GuiUtil.createLineBoxPanel( Box.createVerticalStrut( 30 ) ) );
-		getPanel().add( GuiUtil.createLineBoxPanel( new JLabel("Tip: Remove detection areas with black rois") ) );
-		getPanel().add( GuiUtil.createLineBoxPanel( Box.createVerticalGlue() ) );
+        getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalGlue()));
+        getPanel().add(GuiUtil.createLineBoxPanel(new JLabel("Current sequence input:")));
+        getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalStrut(10)));
+        getPanel().add(GuiUtil.createLineBoxPanel(currentSequenceNameLabel));
+        getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalStrut(30)));
+        getPanel().add(GuiUtil.createLineBoxPanel(new JLabel("Tip: Remove detection areas with black rois")));
+        getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalGlue()));
 
-		refreshCurrentSequenceLabel();
+        refreshCurrentSequenceLabel();
 
-		Icy.getMainInterface().addListener( new MainAdapter() {
-			@Override
-			public void sequenceFocused(MainEvent event) {
-				refreshCurrentSequenceLabel();
-			}
-		});
-	}
+        Icy.getMainInterface().addListener(new MainAdapter()
+        {
+            @Override
+            public void sequenceFocused(MainEvent event)
+            {
+                refreshCurrentSequenceLabel();
+            }
+        });
+    }
 
+    private void refreshCurrentSequenceLabel()
+    {
+        Sequence sequence = getFocusedSequence();
+        if (sequence == null)
+        {
+            currentSequenceNameLabel.setForeground(Color.red);
+            currentSequenceNameLabel.setText("No sequence loaded");
+        }
+        else
+        {
+            currentSequenceNameLabel.setForeground(labelDefaultColor);
+            currentSequenceNameLabel.setText(sequence.getName());
+        }
+    }
 
-	private void refreshCurrentSequenceLabel() {
-		Sequence sequence = getFocusedSequence();
-		if ( sequence == null )
-		{
-			currentSequenceNameLabel.setForeground( Color.red );
-			currentSequenceNameLabel.setText( "No sequence loaded" );
-		}else
-		{
-			currentSequenceNameLabel.setForeground( labelDefaultColor );
-			currentSequenceNameLabel.setText( sequence.getName() );
-		}
-	}
+    @Override
+    public void process(GlobalDetectionToken gdt)
+    {
 
-	@Override
-	public void process(GlobalDetectionToken gdt) {
+        ArrayList<ROI> roiArrayList;
 
-		ArrayList<ROI2D> roiArrayList;
+        roiArrayList = gdt.inputSequence.getROIs();
 
-		roiArrayList = gdt.inputSequence.getROI2Ds();
+        ArrayList<ROI> roiArrayListCopy = new ArrayList<ROI>(roiArrayList);
+        for (ROI roi : roiArrayListCopy)
+        {
+            if (roi.getName().startsWith("spot"))
+                roiArrayList.remove(roi);
+        }
 
-		ArrayList<ROI2D> roiArrayListCopy = new ArrayList<ROI2D>( roiArrayList );
-		for ( ROI2D roi : roiArrayListCopy ){
-			if ( roi.getName().startsWith("spot")) roiArrayList.remove( roi );
-		}
+        // if ( roi.getName().startsWith("spot") ) continue;
 
-//		if ( roi.getName().startsWith("spot") ) continue;
+        // remove detection if they are in a black ROI
 
+        ArrayList<DetectionSpot> cloneDetectionList = new ArrayList<DetectionSpot>(gdt.detectionResult);
+        for (ROI roi : roiArrayList)
+        {
+            if (roi.getColor().getRed() == 0 && roi.getColor().getGreen() == 0 && roi.getColor().getBlue() == 0) // roi is black
+            {
+                for (DetectionSpot detectionSpot : cloneDetectionList)
+                {
+                    if (roi.contains(detectionSpot.getMassCenter().x, detectionSpot.getMassCenter().y,
+                            detectionSpot.getMassCenter().z, detectionSpot.getT(), -1))
+                    {
+                        gdt.detectionResult.remove(detectionSpot);
+                    }
+                }
+            }
+        }
 
-		// remove detection if they are in a black ROI
+        // create a hashMap with the detections binded to ROI
 
-		ArrayList<DetectionSpot> cloneDetectionList = new ArrayList<DetectionSpot>(gdt.detectionResult);
-		for ( ROI2D roi : roiArrayList )
-		{
-			if ( roi.getColor().getRed() == 0 && roi.getColor().getGreen() == 0 && roi.getColor().getBlue() == 0) // roi is black
-			{
-				for ( DetectionSpot detectionSpot : cloneDetectionList )
-				{
-					if ( roi.contains( detectionSpot.getMassCenter().x , detectionSpot.getMassCenter().y, detectionSpot.getMassCenter().z,
-							detectionSpot.getT() , -1 ) )
-					{
-						gdt.detectionResult.remove( detectionSpot );
-					}
-				}
-			}
-		}
+        HashMap<ROI, ArrayList<DetectionSpot>> ROI2Detection = new HashMap<ROI, ArrayList<DetectionSpot>>();
 
-		// create a hashMap with the detections binded to ROI
+        // create a fake ROI taking all the sequence if no existing ROI on sequence.
+        if (roiArrayList.size() == 0)
+        {
+            ROI2Detection.put(new ROI2DRectangle(gdt.inputSequence.getBounds2D()),
+                    (ArrayList<DetectionSpot>) gdt.detectionResult.clone());
+        }
+        else
+        { // there is ROI is the sequence
 
-		HashMap<ROI2D, ArrayList<DetectionSpot>> ROI2Detection = new HashMap<ROI2D, ArrayList<DetectionSpot>>();
+            // setup hashMap
+            for (ROI roi : roiArrayList)
+                ROI2Detection.put(roi, new ArrayList<DetectionSpot>());
 
-		// create a fake ROI taking all the sequence if no existing ROI on sequence.
-		if ( roiArrayList.size() == 0 )
-		{
-			ROI2Detection.put(
-					new ROI2DRectangle( new Point2D.Double(0,0),
-							new Point2D.Double( gdt.inputSequence.getWidth() ,
-									gdt.inputSequence.getHeight() ),
-									false ) ,
-									(ArrayList<DetectionSpot>)gdt.detectionResult.clone() );
-		}else
-		{ // there is ROI is the sequence
+            // fill hashMap
+            for (ROI roi : roiArrayList)
+            {
+                for (DetectionSpot spot : gdt.detectionResult)
+                {
+                    if (roi.contains(spot.getMassCenter().x, spot.getMassCenter().y, spot.getMassCenter().z,
+                            spot.getT(), -1))
+                    {
+                        ROI2Detection.get(roi).add(spot);
+                    }
+                }
+            }
+        }
 
-			// setup hashMap
-			for ( ROI2D roi : roiArrayList ){
-				ROI2Detection.put( roi , new ArrayList<DetectionSpot>() );
-			}
+        // rebuild the detectionResult with what has been found in ROIs
 
-			// fill hashMap
-			for ( ROI2D roi : roiArrayList ){
-				for ( DetectionSpot spot : gdt.detectionResult )
-				{
-					if ( roi.contains( spot.getMassCenter().x , spot.getMassCenter().y, spot.getMassCenter().z,
-							spot.getT() , -1 ) )
-					{
-						ROI2Detection.get(roi).add( spot );
-					}
-				}
-			}
-		}
+        gdt.detectionResult.clear();
+        // Set<Entry<ROI2D, ArrayList<DetectionSpot>>> roiList = ROI2Detection.keySet();
+        for (ROI roi : ROI2Detection.keySet())
+        {
+            for (DetectionSpot ds : ROI2Detection.get(roi))
+                gdt.detectionResult.add(ds);
+        }
 
-		// rebuild the detectionResult with what has been found in ROIs
+        // set detection with ROI
 
-		gdt.detectionResult.clear();
-//		Set<Entry<ROI2D, ArrayList<DetectionSpot>>> roiList = ROI2Detection.keySet();
-		for ( ROI2D roi : ROI2Detection.keySet() )
-		{
-			for ( DetectionSpot ds : ROI2Detection.get(roi) )
-			{
-				gdt.detectionResult.add( ds );
-			}
-		}
+        gdt.roi2detection = ROI2Detection;
 
+    }
 
-		// set detection with ROI
+    @Override
+    public void saveXLS(WritableSheet page, GlobalDetectionToken gdt)
+    {
 
-		gdt.roi2detection = ROI2Detection;
+        ROI_XLS_Common_Saver.saveXLS(page, gdt, "ROI From Sequence module");
 
-
-	}
-
-	@Override
-	public void saveXLS(WritableSheet page, GlobalDetectionToken gdt) {
-
-		ROI_XLS_Common_Saver.saveXLS( page , gdt , "ROI From Sequence module");
-
-	}
-
-
+    }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

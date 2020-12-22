@@ -18,13 +18,6 @@
  */
 package plugins.fab.spotDetector.detector;
 
-import icy.gui.util.GuiUtil;
-import icy.image.ImageUtil;
-import icy.main.Icy;
-import icy.resource.ResourceUtil;
-import icy.roi.ROI2D;
-import icy.util.XLSUtil;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -43,6 +36,12 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.border.TitledBorder;
 
+import icy.gui.util.GuiUtil;
+import icy.image.ImageUtil;
+import icy.main.Icy;
+import icy.resource.ResourceUtil;
+import icy.roi.ROI;
+import icy.util.XLSUtil;
 import jxl.write.WritableSheet;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 import plugins.fab.spotDetector.detector.wavelets.UDWT.B3SplineUDWT;
@@ -67,11 +66,11 @@ public class UDWTWaveletDetector extends DetectorDetectionAbstract implements Ac
 		
 		// copy ROI from input sequence to the computation sequence
 		
-		for ( ROI2D roi : gdt.inputSequence.getROI2Ds() )
+		for ( ROI roi : gdt.inputSequence.getROIs() )
 		{
 			String name = roi.getName();
 
-			ROI2D roiCopy = (ROI2D) roi.getCopy();
+			ROI roiCopy = roi.getCopy();
 			roi.setName( name ); // because of the bug when coppying roi.
 			roiCopy.setName( name ); // else the name has " copy" in the end of it.
 

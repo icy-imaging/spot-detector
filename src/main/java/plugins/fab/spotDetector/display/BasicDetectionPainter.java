@@ -4,8 +4,6 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.Shape;
-import java.awt.color.ColorSpace;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
@@ -14,19 +12,19 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import icy.canvas.Canvas2D;
+import icy.canvas.IcyCanvas;
+import icy.gui.util.GuiUtil;
+import icy.painter.Painter;
+import icy.roi.ROI;
+import icy.roi.ROI2D;
+import icy.sequence.Sequence;
 import plugins.fab.spotDetector.DetectionSpot;
 import plugins.kernel.canvas.VtkCanvas;
 import vtk.vtkActor;
 import vtk.vtkPolyDataMapper;
 import vtk.vtkRenderer;
 import vtk.vtkSphereSource;
-import icy.canvas.Canvas2D;
-import icy.canvas.Canvas3D;
-import icy.canvas.IcyCanvas;
-import icy.gui.util.GuiUtil;
-import icy.painter.Painter;
-import icy.roi.ROI2D;
-import icy.sequence.Sequence;
 
 public class BasicDetectionPainter implements Painter {
 
@@ -37,7 +35,7 @@ public class BasicDetectionPainter implements Painter {
 	int fontLabelSize = 14;
 
 	Color color = Color.red;
-	HashMap<ROI2D, ArrayList<DetectionSpot>> detectionsHashMap;
+	HashMap<ROI, ArrayList<DetectionSpot>> detectionsHashMap;
 	boolean displayROINumber = false;
 	boolean displayDetectionNumberOverROI = false;
 
@@ -90,7 +88,7 @@ public class BasicDetectionPainter implements Painter {
 				g.setColor( color );
 				Ellipse2D ellipse = new Ellipse2D.Double( 0,0,0,0 );
 
-				for ( ROI2D roi : detectionsHashMap.keySet() ){
+				for ( ROI roi : detectionsHashMap.keySet() ){
 
 					ArrayList<DetectionSpot> detectionArrayList = detectionsHashMap.get( roi );
 
@@ -149,7 +147,7 @@ public class BasicDetectionPainter implements Painter {
 
 			// draw text of ROI
 
-			for ( ROI2D roi : sequence.getROI2Ds() )
+			for ( ROI roi : sequence.getROIs() )
 			{
 				if ( roi.getName().startsWith("spot") ) continue;
 
@@ -172,8 +170,8 @@ public class BasicDetectionPainter implements Painter {
 					Rectangle2D labelBounds = GuiUtil.getStringBounds( g , font, label );
 
 					displayTxtList.add( new DisplayTxt ( label, new Rectangle2D.Double(
-							(float)(roi.getBounds2D().getCenterX() - labelBounds.getWidth()/2) ,
-							(float)( roi.getBounds2D().getCenterY() + labelBounds.getHeight() ) ,
+							(float)(roi.getBounds5D().getCenterX() - labelBounds.getWidth()/2) ,
+							(float)( roi.getBounds5D().getCenterY() + labelBounds.getHeight() ) ,
 							labelBounds.getWidth(),
 							labelBounds.getHeight()
 							) ) );
@@ -191,8 +189,8 @@ public class BasicDetectionPainter implements Painter {
 						Rectangle2D detectionLabelBounds = GuiUtil.getStringBounds( g , font, detectionLabel );
 
 						displayTxtList.add( new DisplayTxt ( detectionLabel , new Rectangle2D.Double(
-								(float)(roi.getBounds2D().getCenterX() - detectionLabelBounds.getWidth()/2),
-								roi.getBounds2D().getCenterY() + offsetY + detectionLabelBounds.getHeight() ,
+								(float)(roi.getBounds5D().getCenterX() - detectionLabelBounds.getWidth()/2),
+								roi.getBounds5D().getCenterY() + offsetY + detectionLabelBounds.getHeight() ,
 								detectionLabelBounds.getWidth(),
 								detectionLabelBounds.getHeight() ) ) );
 
@@ -301,7 +299,7 @@ public class BasicDetectionPainter implements Painter {
 //			g.setColor( colorChooserButton.getColor() );
 //			Ellipse2D ellipse = new Ellipse2D.Double( 0,0,0,0 );
 
-			for ( ROI2D roi : detectionsHashMap.keySet() ){
+			for ( ROI roi : detectionsHashMap.keySet() ){
 
 				ArrayList<DetectionSpot> detectionArrayList = detectionsHashMap.get( roi );
 

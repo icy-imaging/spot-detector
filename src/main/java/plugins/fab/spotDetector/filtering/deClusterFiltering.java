@@ -3,18 +3,15 @@ package plugins.fab.spotDetector.filtering;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
-import icy.file.xls.XlsManager;
-import icy.gui.component.ComponentUtil;
-import icy.gui.util.GuiUtil;
-import icy.roi.ROI2D;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
+import icy.gui.component.ComponentUtil;
+import icy.gui.util.GuiUtil;
+import icy.roi.ROI;
 import jxl.write.WritableSheet;
-
 import plugins.fab.spotDetector.DetectionSpot;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 import plugins.fab.spotDetector.Point3D;
@@ -229,7 +226,7 @@ public class deClusterFiltering extends FilteringDetectionAbstract {
 		
 		nbSplitDetection = 0;
 		// Filter the roi dataset
-		for ( ROI2D roi : gdt.roi2detection.keySet() )
+		for ( ROI roi : gdt.roi2detection.keySet() )
 		{
 			ArrayList<DetectionSpot> detectionList = gdt.roi2detection.get( roi );
 			ArrayList<DetectionSpot> detectionListCopy = new ArrayList<DetectionSpot> ( detectionList );
