@@ -109,7 +109,7 @@ public class SpotDetector extends PluginActionable implements TreeSelectionListe
         nodes.add(root);
         // appendAllChildrenToList(nodes, root, true);
 
-        Enumeration<TreeNode> children = root.children();
+        java.util.Enumeration<? extends javax.swing.tree.TreeNode> children = root.children();
 
         // Enumeration children = parent.children();
         if (children != null)
