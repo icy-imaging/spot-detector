@@ -43,7 +43,7 @@ public class InputPanel extends GeneralSpotDetectionPanel implements ActionListe
 	 */
 	InputDetectionAbstract inputDetection = null;
 
-	public void process( GlobalDetectionToken gdt )
+	public void process( GlobalDetectionToken gdt ) throws InterruptedException
 	{
 		inputDetection.process( gdt );
 		//return inputDetection.getInputSequence();

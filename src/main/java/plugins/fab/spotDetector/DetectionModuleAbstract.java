@@ -35,6 +35,6 @@ public abstract class DetectionModuleAbstract extends Plugin implements PluginLi
         return mainPanel;
     }
 
-    public abstract void process(GlobalDetectionToken gdt);
-    public abstract void saveXLS(WritableSheet page, GlobalDetectionToken gdt);
+    public abstract void process(GlobalDetectionToken gdt) throws InterruptedException;
+    public abstract void saveXLS(WritableSheet page, GlobalDetectionToken gdt) throws InterruptedException;
 }

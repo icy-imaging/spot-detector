@@ -24,7 +24,7 @@ public class UDWTWavelet {
 			boolean detectNegative,
 			boolean useROIforWATComputation,
 			final double[] scaleParameters
-			)
+			) throws InterruptedException
 	{
 		
 		UDWTWaveletCore waveletCore = new UDWTWaveletCore( );

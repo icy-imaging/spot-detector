@@ -348,7 +348,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
 
     }
 
-    public void process(final GlobalDetectionToken gdt)
+    public void process(final GlobalDetectionToken gdt) throws InterruptedException
     {
 
         if (XMLPanel.isExportToXMLSelected())
@@ -466,13 +466,17 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
                         Canvas2D canvas = (Canvas2D) viewer.getCanvas();
 
                         viewer.setSize(200, 200);
-                        BufferedImage renderedImage = canvas.getRenderedImage(0, 0, -1, false);
-
                         try
                         {
+                            BufferedImage renderedImage = canvas.getRenderedImage(0, 0, -1, false);
+
                             if (!dirResult.exists())
                                 dirResult.mkdir();
                             Saver.saveImage(IcyBufferedImage.createFrom(renderedImage), withnessImageFile, true);
+                        }
+                        catch (InterruptedException e)
+                        {
+                            e.printStackTrace();
                         }
                         catch (FormatException e)
                         {
@@ -639,7 +643,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
 
     }
 
-    static int computeROISurface(ROI roi)
+    static int computeROISurface(ROI roi) throws InterruptedException
     {
         return (int) ROIInteriorDescriptor.computeInterior(roi);
     }
@@ -690,8 +694,9 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
      * @param xlsFile
      * @param gdt
      * @param appendToExistingFile
+     * @throws InterruptedException 
      */
-    void saveToXLS(File xlsFile, GlobalDetectionToken gdt, boolean appendToExistingFile)
+    void saveToXLS(File xlsFile, GlobalDetectionToken gdt, boolean appendToExistingFile) throws InterruptedException
     {
         // XLSUtil xlsUtil = null;
         WritableWorkbook workbook = null;

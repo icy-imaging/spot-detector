@@ -23,7 +23,6 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -376,6 +375,10 @@ public class SpotDetector extends PluginActionable implements TreeSelectionListe
                 {
                     outputPanel.process(gdt);
                 }
+            }
+            catch (InterruptedException e)
+            {
+                new FailedAnnounceFrame(e.getMessage());
             }
             catch (Exception e)
             {

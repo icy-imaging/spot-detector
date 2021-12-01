@@ -55,7 +55,7 @@ public class DetectorPanel extends GeneralSpotDetectionPanel implements ActionLi
         refreshInterface();
     }
 
-    public void process( GlobalDetectionToken gdt )
+    public void process( GlobalDetectionToken gdt ) throws InterruptedException
     {
     	detectorDetection.process( gdt );
     }

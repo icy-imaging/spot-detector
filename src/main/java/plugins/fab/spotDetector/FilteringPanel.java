@@ -118,7 +118,7 @@ public class FilteringPanel extends GeneralSpotDetectionPanel implements ActionL
 
     }
 
-	public void process(GlobalDetectionToken gdt)
+	public void process(GlobalDetectionToken gdt) throws InterruptedException
 	{
 		filteringDetection.process(gdt);
 	}

@@ -58,7 +58,7 @@ public class UDWTWaveletDetector extends DetectorDetectionAbstract implements Ac
     }
 
 	@Override
-	public void process(GlobalDetectionToken gdt) {
+	public void process(GlobalDetectionToken gdt) throws InterruptedException {
 		
 		boolean detectNegative = detectNegativeRadio.isSelected();
 		boolean computeWATwithROI = computeWATwithROICheckBox.isSelected();

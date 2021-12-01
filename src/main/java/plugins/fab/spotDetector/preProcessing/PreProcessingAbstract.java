@@ -26,8 +26,6 @@ import plugins.fab.spotDetector.GlobalDetectionToken;
 
 public abstract class PreProcessingAbstract extends DetectionModuleAbstract
 {
-	public abstract void process(GlobalDetectionToken gdt);
-
 
 }
 

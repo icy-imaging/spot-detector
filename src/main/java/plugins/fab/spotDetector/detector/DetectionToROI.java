@@ -13,7 +13,7 @@ import plugins.kernel.roi.roi3d.ROI3DArea;
 
 public class DetectionToROI {
 
-	public static ArrayList<ROI> convertDetectionToROI(ArrayList<DetectionSpot> detectionList )
+	public static ArrayList<ROI> convertDetectionToROI(ArrayList<DetectionSpot> detectionList ) throws InterruptedException
 	{
 		ArrayList<ROI> roiList = new ArrayList<ROI>();
 		

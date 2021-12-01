@@ -220,7 +220,7 @@ public class ROIFixedFromSequence extends ROIDetectionAbstract implements Action
     }
 
     @Override
-    public void saveXLS(WritableSheet page, GlobalDetectionToken gdt)
+    public void saveXLS(WritableSheet page, GlobalDetectionToken gdt) throws InterruptedException
     {
 
         ROI_XLS_Common_Saver.saveXLS(page, gdt, "ROI From Sequence module");

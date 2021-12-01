@@ -44,7 +44,7 @@ public class PreProcessPanel extends GeneralSpotDetectionPanel implements Action
      */
     PreProcessingAbstract preProcessorDetection = null;
 
-    public void process( GlobalDetectionToken gdt )
+    public void process( GlobalDetectionToken gdt ) throws InterruptedException
     {
     	preProcessorDetection.process( gdt ) ;
         //gdt.inputSequence;

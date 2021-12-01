@@ -67,7 +67,7 @@ public class ChannelSelectorPreProcessor extends PreProcessingAbstract implement
 	}
 
 	@Override
-	public void process(GlobalDetectionToken gdt) {
+	public void process(GlobalDetectionToken gdt) throws InterruptedException {
 
 		gdt.inputComputationSequence = gdt.inputSequence.extractChannel( selectedChannel );
 

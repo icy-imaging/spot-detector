@@ -17,7 +17,7 @@ import plugins.kernel.roi.descriptor.measure.ROIInteriorDescriptor;
 public class ROI_XLS_Common_Saver
 {
 
-    public static void saveXLS(WritableSheet page, GlobalDetectionToken gdt, String ROIGeneratorName)
+    public static void saveXLS(WritableSheet page, GlobalDetectionToken gdt, String ROIGeneratorName) throws InterruptedException
     {
 
         int row = page.getRows();
@@ -167,7 +167,7 @@ public class ROI_XLS_Common_Saver
 
     }
 
-    static int computeROISurface(ROI roi)
+    static int computeROISurface(ROI roi) throws InterruptedException
     {
         return (int) ROIInteriorDescriptor.computeInterior(roi);
     }

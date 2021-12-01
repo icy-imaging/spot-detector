@@ -103,10 +103,11 @@ public class UDWTWaveletCore
      * @param useROIforWATcomputation
      *        only compute WAT with pixel in ROIs.
      * @return the list detection
+     * @throws InterruptedException
      */
     public ArrayList<DetectionSpot> computeDetection(boolean computeBinaryDetection, // was displayBinaryDetection. Caller should be changed accordinaly
             ArrayList<UDWTScale> UDWTScaleArrayList, Sequence sequenceIn, boolean detectNegative,
-            boolean useROIforWATcomputation)
+            boolean useROIforWATcomputation) throws InterruptedException
     {
 
         return computeDetection(computeBinaryDetection, UDWTScaleArrayList, sequenceIn, detectNegative,
@@ -129,10 +130,11 @@ public class UDWTWaveletCore
      * @param force2DWaveletsFor3D
      *        force 2D wavelet detection for 3D image
      * @return the list detection
+     * @throws InterruptedException 
      */
     public ArrayList<DetectionSpot> computeDetection(boolean computeBinaryDetection, // was displayBinaryDetection. Caller should be changed accordinaly
             ArrayList<UDWTScale> UDWTScaleArrayList, Sequence sequenceIn, boolean detectNegative,
-            boolean useROIforWATcomputation, boolean force2DWaveletsFor3D)
+            boolean useROIforWATcomputation, boolean force2DWaveletsFor3D) throws InterruptedException
     {
         this.UDWTScaleArrayList = UDWTScaleArrayList;
 
@@ -192,6 +194,10 @@ public class UDWTWaveletCore
 
             for (int t = 0; t < sequenceIn.getSizeT(); t++)
             {
+                // check for interruption from time to time as this can be a long process
+                if (Thread.interrupted())
+                    throw new InterruptedException("SpotDetector.computeDetection(..) process interrupted.");
+
                 // IcyBufferedImage image = inputSequence.getFirstImage();
                 IcyBufferedImage image = inputSequence.getImage(t, 0);
 
@@ -694,7 +700,7 @@ public class UDWTWaveletCore
 
     }
 
-    private boolean[] buildBinaryMask(Rectangle bounds, List<ROI> rois, int t, int z)
+    private boolean[] buildBinaryMask(Rectangle bounds, List<ROI> rois, int t, int z) throws InterruptedException
     {
         if (rois.isEmpty())
             return null;
