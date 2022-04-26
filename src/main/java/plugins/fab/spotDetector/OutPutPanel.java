@@ -622,25 +622,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
         }
 
         if (exportToROIcheckBox.isSelected())
-        {
-            // System.out.println("passed by here.");
-
-            ArrayList<ROI> roiList = DetectionToROI.convertDetectionToROI(gdt.detectionResult);
-
-            gdt.inputSequence.beginUpdate();
-            try
-            {
-                for (ROI roi : roiList)
-                {
-                    gdt.inputSequence.addROI(roi);
-                }
-            }
-            finally
-            {
-                gdt.inputSequence.endUpdate();
-            }
-        }
-
+            gdt.inputSequence.addROIs(DetectionToROI.convertDetectionToROI(gdt.detectionResult), true);
     }
 
     static int computeROISurface(ROI roi) throws InterruptedException
@@ -694,7 +676,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
      * @param xlsFile
      * @param gdt
      * @param appendToExistingFile
-     * @throws InterruptedException 
+     * @throws InterruptedException
      */
     void saveToXLS(File xlsFile, GlobalDetectionToken gdt, boolean appendToExistingFile) throws InterruptedException
     {
