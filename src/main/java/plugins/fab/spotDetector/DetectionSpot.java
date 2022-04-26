@@ -22,7 +22,6 @@ import java.util.ArrayList;
 
 public class DetectionSpot
 {
-
     /**
      * mass center of detection
      */
@@ -94,7 +93,6 @@ public class DetectionSpot
      */
     public void computeMassCenter()
     {
-
         massCenter = new Point3D();
         if (points.size() == 0)
             return;
@@ -115,7 +113,6 @@ public class DetectionSpot
         massCenter.x = x;
         massCenter.y = y;
         massCenter.z = z;
-
     }
 
     /**
@@ -130,5 +127,4 @@ public class DetectionSpot
         massCenter.y = point3d.y;
         massCenter.z = point3d.z;
     }
-
 }
