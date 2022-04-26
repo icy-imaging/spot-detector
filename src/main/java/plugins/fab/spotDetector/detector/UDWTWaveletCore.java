@@ -2,8 +2,11 @@ package plugins.fab.spotDetector.detector;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import javax.vecmath.Point3i;
 
@@ -13,7 +16,9 @@ import icy.roi.BooleanMask2D;
 import icy.roi.ROI;
 import icy.sequence.Sequence;
 import icy.sequence.VolumetricImage;
-import icy.type.TypeUtil;
+import icy.system.SystemUtil;
+import icy.system.thread.Processor;
+import icy.type.DataType;
 import icy.type.collection.array.Array1DUtil;
 import icy.type.collection.array.ArrayUtil;
 import plugins.adufour.connectedcomponents.ConnectedComponent;
@@ -26,6 +31,338 @@ import plugins.kernel.roi.roi2d.ROI2DRectangle;
 
 public class UDWTWaveletCore
 {
+    public class UDWTWaveletCore2DProcessor implements Callable<List<DetectionSpot>>
+    {
+        final Sequence sequence;
+        final int frame;
+        final int numScales;
+        final boolean negative;
+        final boolean useROIWat;
+        final boolean doBinary;
+
+        public UDWTWaveletCore2DProcessor(Sequence in, int t, int ns, boolean neg, boolean useROIWat, boolean doBinary)
+        {
+            super();
+
+            sequence = in;
+            frame = t;
+            numScales = ns;
+            negative = neg;
+            this.useROIWat = useROIWat;
+            this.doBinary = doBinary;
+        }
+
+        @Override
+        public List<DetectionSpot> call() throws Exception
+        {
+            final List<DetectionSpot> detectionList = new ArrayList<>();
+            final List<ROI> rois = new ArrayList<>();
+            final Rectangle bounds = sequence.getBounds2D();
+
+            // rois used for WAT computation ?
+            if (useROIWat)
+            {
+                rois.addAll(sequence.getROIs());
+                // by default we use Sequence bounds
+                if (rois.isEmpty())
+                    rois.add(new ROI2DRectangle(bounds));
+            }
+
+            // IcyBufferedImage image = sequenceIn.getFirstImage();
+            IcyBufferedImage image = sequence.getImage(frame, 0);
+
+            if (image != null)
+            {
+                // build boolean mask for this frame
+                final boolean[] mask = buildBinaryMask(bounds, rois, frame, 0);
+                // compute scales
+                final float dataIn[] = Array1DUtil.arrayToFloatArray(image.getDataXY(0), image.isSignedDataType());
+                // decompose the image
+                B3SplineUDWT waveletTransform = new B3SplineUDWT();
+
+                float[][] scales;
+                try
+                {
+                    scales = waveletTransform.b3WaveletScales2D(dataIn, image.getWidth(), image.getHeight(), numScales);
+                }
+                catch (WaveletConfigException e1)
+                {
+                    e1.printStackTrace();
+                    return detectionList;
+                }
+                float[][] coefficients = waveletTransform.b3WaveletCoefficients2D(scales, dataIn, numScales,
+                        image.getWidth() * image.getHeight());
+
+                // Apply threshold to coefficients but not last one ( residual )
+
+                // Filtering
+                for (int i = 0; i < coefficients.length - 1; i++)
+                {
+                    if (negative)
+                    {
+                        for (int ii = 0; ii < coefficients[i].length; ii++)
+                            coefficients[i][ii] = -coefficients[i][ii];
+                    }
+
+                    filter_wat(coefficients[i], i, sequence.getWidth(), sequence.getHeight(), mask);
+                }
+
+                // TODO: Instead of putting it to residual image 0 , remove it from reconstruction
+                // fill of 0 the residual image
+                Arrays.fill(coefficients[coefficients.length - 1], 0f);
+
+                // reconstruct the image from the wavelet coefficients
+                final IcyBufferedImage imageOut = new IcyBufferedImage(image.getWidth(), image.getHeight(), 1,
+                        DataType.BYTE);
+                float[] binaryDetectionResult = new float[image.getWidth() * image.getHeight()];
+
+                // waveletTransform.b3WaveletReconstruction2D(coefficients, coefficients[numScales], binaryDetectionResult, numScales,
+                // image.getWidth()*image.getHeight());
+                waveletTransform.b3SpotConstruction2D(coefficients, binaryDetectionResult, numScales,
+                        image.getWidth() * image.getHeight(), UDWTScaleArrayList);
+
+                // Binarisation de la reconstruction.
+                for (int i = 0; i < binaryDetectionResult.length; i++)
+                    binaryDetectionResult[i] = (binaryDetectionResult[i] != 0) ? 255 : 0;
+
+                ArrayUtil.arrayToArray(binaryDetectionResult, imageOut.getDataXY(0), image.isSignedDataType());
+
+                Sequence seq = new Sequence(imageOut);
+
+                addConnectedComponentDetection(seq.getVolumetricImage(0), detectionList, frame, sequence);
+
+                if (doBinary)
+                    binarySequence.setImage(frame, 0, imageOut);
+            }
+
+            return detectionList;
+        }
+    }
+
+    public class UDWTWaveletCore2D3DProcessor implements Callable<List<DetectionSpot>>
+    {
+        final Sequence sequence;
+        final int frame;
+        final int numScales;
+        final boolean negative;
+        final boolean useROIWat;
+        final boolean doBinary;
+
+        public UDWTWaveletCore2D3DProcessor(Sequence in, int t, int ns, boolean neg, boolean useROIWat,
+                boolean doBinary)
+        {
+            super();
+
+            sequence = in;
+            frame = t;
+            numScales = ns;
+            negative = neg;
+            this.useROIWat = useROIWat;
+            this.doBinary = doBinary;
+        }
+
+        @Override
+        public List<DetectionSpot> call() throws Exception
+        {
+            final List<DetectionSpot> detectionList = new ArrayList<>();
+            final List<ROI> rois = new ArrayList<>();
+            final Rectangle bounds = sequence.getBounds2D();
+
+            // rois used for WAT computation ?
+            if (useROIWat)
+            {
+                rois.addAll(sequence.getROIs());
+                // by default we use Sequence bounds
+                if (rois.isEmpty())
+                    rois.add(new ROI2DRectangle(bounds));
+            }
+
+            Sequence binary3DOutput = new Sequence();
+
+            for (int z = 0; z < sequence.getSizeZ(); z++)
+            {
+                // build boolean mask for this frame / slice
+                final boolean[] mask = buildBinaryMask(bounds, rois, frame, z);
+                // IcyBufferedImage image = sequence.getFirstImage();
+                IcyBufferedImage image = sequence.getImage(frame, z);
+                // compute scales
+                final float dataIn[] = Array1DUtil.arrayToFloatArray(image.getDataXY(0), image.isSignedDataType());
+                // decompose the image
+                B3SplineUDWT waveletTransform = new B3SplineUDWT();
+
+                float[][] scales;
+                try
+                {
+                    scales = waveletTransform.b3WaveletScales2D(dataIn, image.getWidth(), image.getHeight(), numScales);
+                }
+                catch (WaveletConfigException e1)
+                {
+                    e1.printStackTrace();
+                    return detectionList;
+                }
+                float[][] coefficients = waveletTransform.b3WaveletCoefficients2D(scales, dataIn, numScales,
+                        image.getWidth() * image.getHeight());
+
+                // Apply threshold to coefficients but not last one ( residual )
+                // Filtering
+                for (int i = 0; i < coefficients.length - 1; i++)
+                {
+                    if (negative)
+                    {
+                        for (int ii = 0; ii < coefficients[i].length; ii++)
+                            coefficients[i][ii] = -coefficients[i][ii];
+                    }
+
+                    filter_wat(coefficients[i], i, sequence.getWidth(), sequence.getHeight(), mask);
+
+                }
+
+                // TODO: Instead of putting it to residual image 0 , remove it from reconstruction
+                // fill of 0 the residual image
+                Arrays.fill(coefficients[coefficients.length - 1], 0f);
+
+                // reconstruct the image from the wavelet coefficients
+                final IcyBufferedImage imageOut = new IcyBufferedImage(image.getWidth(), image.getHeight(), 1,
+                        DataType.BYTE);
+                float[] binaryDetectionResult = new float[image.getWidth() * image.getHeight()];
+
+                waveletTransform.b3SpotConstruction2D(coefficients, binaryDetectionResult, numScales,
+                        image.getWidth() * image.getHeight(), UDWTScaleArrayList);
+
+                // Binarisation de la reconstruction.
+                for (int i = 0; i < binaryDetectionResult.length; i++)
+                    binaryDetectionResult[i] = (binaryDetectionResult[i] != 0) ? 255 : 0;
+
+                ArrayUtil.arrayToArray(binaryDetectionResult, imageOut.getDataXY(0), image.isSignedDataType());
+                binary3DOutput.setImage(0, z, imageOut);
+
+                if (doBinary)
+                    binarySequence.setImage(frame, z, imageOut);
+            }
+
+            addConnectedComponentDetection(binary3DOutput.getVolumetricImage(0), detectionList, frame, sequence);
+
+            return detectionList;
+        }
+    }
+
+    public class UDWTWaveletCore3DProcessor implements Callable<List<DetectionSpot>>
+    {
+        final Sequence sequence;
+        final int frame;
+        final int numScales;
+        final boolean negative;
+        final boolean useROIWat;
+        final boolean doBinary;
+
+        public UDWTWaveletCore3DProcessor(Sequence in, int t, int ns, boolean neg, boolean useROIWat, boolean doBinary)
+        {
+            super();
+
+            sequence = in;
+            frame = t;
+            numScales = ns;
+            negative = neg;
+            this.useROIWat = useROIWat;
+            this.doBinary = doBinary;
+        }
+
+        @Override
+        public List<DetectionSpot> call() throws Exception
+        {
+            final List<DetectionSpot> detectionList = new ArrayList<>();
+            final List<ROI> rois = new ArrayList<>();
+            final Rectangle bounds = sequence.getBounds2D();
+
+            // rois used for WAT computation ?
+            if (useROIWat)
+            {
+                rois.addAll(sequence.getROIs());
+                // by default we use Sequence bounds
+                if (rois.isEmpty())
+                    rois.add(new ROI2DRectangle(bounds));
+            }
+
+            final float[][] dataIn = new float[sequence.getSizeZ()][];
+            for (int z = 0; z < sequence.getSizeZ(); z++)
+                dataIn[z] = Array1DUtil.arrayToFloatArray(sequence.getDataXY(frame, z, 0), sequence.isSignedDataType());
+            B3SplineUDWT waveletTransform = new B3SplineUDWT();
+
+            float[][][] scales;
+            try
+            {
+                scales = waveletTransform.b3WaveletScales3D(dataIn, sequence.getSizeX(), sequence.getSizeY(),
+                        sequence.getSizeZ(), numScales);
+            }
+            catch (WaveletConfigException e1)
+            {
+                e1.printStackTrace();
+                return detectionList;
+            }
+            float[][][] coefficients = waveletTransform.b3WaveletCoefficients3D(scales, dataIn, numScales,
+                    sequence.getSizeX() * sequence.getSizeY(), sequence.getSizeZ());
+
+            // Apply threshold to coefficients but not last one ( residual )
+
+            // Filtering
+
+            final boolean[][] masks = new boolean[sequence.getSizeZ()][];
+
+            // build boolean masks for all slices
+            for (int z = 0; z < masks.length; z++)
+                masks[z] = buildBinaryMask(bounds, rois, frame, z);
+
+            for (int scale = 0; scale < coefficients.length - 1; scale++)
+            {
+                for (int z = 0; z < coefficients[scale].length; z++)
+                {
+                    if (negative)
+                    {
+                        for (int ii = 0; ii < coefficients[scale][z].length; ii++)
+                            coefficients[scale][z][ii] = -coefficients[scale][z][ii];
+                    }
+
+                    filter_wat(coefficients[scale][z], scale, sequence.getWidth(), sequence.getHeight(), masks[z]);
+                }
+            }
+
+            // TODO: Instead of putting it to residual image 0 , remove it from reconstruction
+            // fill of 0 the residual image
+            float c[][] = coefficients[coefficients.length - 1];
+            for (int z = 0; z < c.length; z++)
+                Arrays.fill(c[z], 0f);
+
+            // reconstruct the image from the wavelet coefficients
+            float[][] reconstruction = new float[sequence.getSizeZ()][sequence.getSizeX() * sequence.getSizeY()];
+            waveletTransform.b3SpotConstruction3D(coefficients, reconstruction, numScales,
+                    sequence.getSizeX() * sequence.getSizeY(), sequence.getSizeZ(), UDWTScaleArrayList);
+
+            // Binarisation de la reconstruction.
+            for (int z = 0; z < reconstruction.length; z++)
+            {
+                float[] binaryDetectionResult = reconstruction[z];
+
+                for (int i = 0; i < binaryDetectionResult.length; i++)
+                    binaryDetectionResult[i] = (binaryDetectionResult[i] != 0) ? 255 : 0;
+            }
+
+            VolumetricImage vOut = new VolumetricImage();
+            for (int z = 0; z < sequence.getSizeZ(); z++)
+            {
+                final IcyBufferedImage imageOut = new IcyBufferedImage(sequence.getSizeX(), sequence.getSizeY(), 1,
+                        DataType.BYTE);
+                ArrayUtil.arrayToArray(reconstruction[z], imageOut.getDataXY(0), true);
+                vOut.setImage(z, imageOut);
+            }
+
+            addConnectedComponentDetection(vOut, detectionList, frame, sequence);
+
+            if (doBinary)
+                binarySequence.addVolumetricImage(frame, vOut);
+
+            return detectionList;
+        }
+    }
 
     int getNumberOfMaxEnabledScale()
     {
@@ -59,24 +396,19 @@ public class UDWTWaveletCore
 
     ArrayList<UDWTScale> UDWTScaleArrayList = null;
 
-    private void addConnectedComponentDetection(Sequence binarySequence, ArrayList<DetectionSpot> detectionList, int t,
+    private void addConnectedComponentDetection(VolumetricImage vOut, List<DetectionSpot> detectionList, int frame,
             Sequence originalSequence)
     {
-        Map<Integer, List<ConnectedComponent>> result = ConnectedComponents.extractConnectedComponents(binarySequence,
-                0, ConnectedComponents.ExtractionType.BACKGROUND, 0, Integer.MAX_VALUE, null);
+        IcyBufferedImage img = vOut.getFirstImage();
+        VolumetricImage workVol = new VolumetricImage();
 
-        detectionList.addAll(convert2detectionList(originalSequence, result, t));
+        for (int z = 0; z < vOut.getSize(); z++)
+            workVol.setImage(z, new IcyBufferedImage(img.getSizeX(), img.getSizeY(), 1, DataType.UINT));
 
-        // LabelExtractor labelExtractor = new LabelExtractor();
+        List<ConnectedComponent> result = ConnectedComponents.extractConnectedComponents(vOut, 0,
+                ConnectedComponents.ExtractionType.BACKGROUND, false, false, false, 0, Integer.MAX_VALUE, workVol);
 
-        // List<ROI> roiList = labelExtractor.extractLabels( binarySequence, LabelExtractor.ExtractionType.ANY_LABEL_VS_BACKGROUND , 0 );
-        //
-        // for ( ROI roi : roiList )
-        // {
-        // Icy.getMainInterface().getActiveSequence().addROI( roi );
-        // System.out.println( roi );
-        // }
-
+        detectionList.addAll(convert2detectionList(originalSequence, result, frame));
     }
 
     Sequence binarySequence;
@@ -130,7 +462,7 @@ public class UDWTWaveletCore
      * @param force2DWaveletsFor3D
      *        force 2D wavelet detection for 3D image
      * @return the list detection
-     * @throws InterruptedException 
+     * @throws InterruptedException
      */
     public ArrayList<DetectionSpot> computeDetection(boolean computeBinaryDetection, // was displayBinaryDetection. Caller should be changed accordinaly
             ArrayList<UDWTScale> UDWTScaleArrayList, Sequence sequenceIn, boolean detectNegative,
@@ -138,557 +470,137 @@ public class UDWTWaveletCore
     {
         this.UDWTScaleArrayList = UDWTScaleArrayList;
 
-        // display UDWTScaleArrayList for debug
-
-        // for ( UDWTScale scale : UDWTScaleArrayList )
-        // {
-        // System.out.println( "scale # " + UDWTScaleArrayList.indexOf( scale ) + " enabled : " + scale.isEnabled() + " threshold:" + scale.getThreshold() );
-        // }
-
-        //
-
         ArrayList<DetectionSpot> detectionList = new ArrayList<DetectionSpot>();
 
         int numScales = getNumberOfMaxEnabledScale();
 
-        // System.out.println("Num scales enabled : " + numScales );
-
-        Sequence inputSequence = sequenceIn;
-
-        if (inputSequence == null)
+        if (sequenceIn == null)
             return detectionList;
-        if (inputSequence.getAllImage().size() == 0)
+        if (sequenceIn.getAllImage().size() == 0)
             return detectionList;
 
         // Sequence binSequence = new Sequence();
         binarySequence = new Sequence();
         binarySequence.setName("Binary Sequence"); // Check if this name already exists and change it if needed.
 
-        final List<ROI> rois = new ArrayList<>();
-        final Rectangle bounds = sequenceIn.getBounds2D();
-
-        // rois used for WAT computation ?
-        if (useROIforWATcomputation)
-        {
-            rois.addAll(sequenceIn.getROIs());
-            // by default we use Sequence bounds
-            if (rois.isEmpty())
-                rois.add(new ROI2DRectangle(bounds));
-        }
+        // final Processor processor = new Processor(1);
+        final Processor processor = new Processor(sequenceIn.getSizeT(), SystemUtil.getNumberOfCPUs() * 2);
+        final List<Future<?>> tasks = new ArrayList<Future<?>>();
 
         //
         // 2D Image
         //
-
-        if (inputSequence.getSizeZ() == 1)
+        if (sequenceIn.getSizeZ() == 1)
         {
+            if (B3SplineUDWT.isNumberOfScaleOkForImage2D(sequenceIn.getSizeX(), sequenceIn.getSizeY(),
+                    getNumberOfMaxEnabledScale()) == false)
             {
-                B3SplineUDWT waveletTransform = new B3SplineUDWT();
-                if (waveletTransform.isNumberOfScaleOkForImage2D(inputSequence.getSizeX(), inputSequence.getSizeY(),
-                        getNumberOfMaxEnabledScale()) == false)
-                {
-                    System.err.println("Scale configuration error");
-                    return detectionList;
-                }
+                System.err.println("Scale configuration error");
+                return detectionList;
             }
 
             for (int t = 0; t < sequenceIn.getSizeT(); t++)
             {
-                // check for interruption from time to time as this can be a long process
-                if (Thread.interrupted())
-                    throw new InterruptedException("SpotDetector.computeDetection(..) process interrupted.");
-
-                // IcyBufferedImage image = inputSequence.getFirstImage();
-                IcyBufferedImage image = inputSequence.getImage(t, 0);
-
-                if (image != null)
-                {
-                    // build boolean mask for this frame
-                    final boolean[] mask = buildBinaryMask(bounds, rois, t, 0);
-
-                    // compute scales
-                    final float dataIn[] = Array1DUtil.arrayToFloatArray(image.getDataXY(0), image.isSignedDataType());
-                    // decompose the image
-                    B3SplineUDWT waveletTransform = new B3SplineUDWT();
-
-                    float[][] scales;
-                    try
-                    {
-                        scales = waveletTransform.b3WaveletScales2D(dataIn, image.getWidth(), image.getHeight(),
-                                numScales);
-                    }
-                    catch (WaveletConfigException e1)
-                    {
-                        e1.printStackTrace();
-                        return detectionList;
-                    }
-                    float[][] coefficients = waveletTransform.b3WaveletCoefficients2D(scales, dataIn, numScales,
-                            image.getWidth() * image.getHeight());
-                    Sequence resultSequence = new Sequence();
-                    resultSequence.setName("WaveletCoefficients");
-
-                    // Apply threshold to coefficients but not last one ( residual )
-
-                    // Filtering
-                    for (int i = 0; i < coefficients.length - 1; i++)
-                    {
-                        if (detectNegative)
-                        {
-                            for (int ii = 0; ii < coefficients[i].length; ii++)
-                            {
-                                coefficients[i][ii] = -coefficients[i][ii];
-                            }
-                        }
-
-                        filter_wat(coefficients[i], i, inputSequence.getWidth(), inputSequence.getHeight(), mask);
-                    }
-
-                    // TODO: Instead of putting it to residual image 0 , remove it from reconstruction
-                    { // fill of 0 the residual image
-                        float c[] = coefficients[coefficients.length - 1];
-                        for (int i = 0; i < c.length; i++)
-                        {
-                            c[i] = 0;
-                        }
-                    }
-
-                    // Icy.addSequence(resultSequence);
-                    resultSequence.dataChanged();
-                    // reconstruct the image from the wavelet coefficients
-                    final IcyBufferedImage imageOut = new IcyBufferedImage(image.getWidth(), image.getHeight(), 1,
-                            TypeUtil.TYPE_BYTE);
-                    float[] binaryDetectionResult = new float[image.getWidth() * image.getHeight()];
-
-                    // waveletTransform.b3WaveletReconstruction2D(coefficients, coefficients[numScales], binaryDetectionResult, numScales,
-                    // image.getWidth()*image.getHeight());
-                    waveletTransform.b3SpotConstruction2D(coefficients, binaryDetectionResult, numScales,
-                            image.getWidth() * image.getHeight(), UDWTScaleArrayList);
-
-                    // Binarisation de la reconstruction.
-                    {
-                        for (int i = 0; i < binaryDetectionResult.length; i++)
-                        {
-                            if (binaryDetectionResult[i] != 0) // >
-                            {
-                                binaryDetectionResult[i] = 255;
-                            }
-                            else
-                            {
-                                binaryDetectionResult[i] = 0;
-                            }
-                        }
-                    }
-
-                    ArrayUtil.arrayToArray(binaryDetectionResult, imageOut.getDataXY(0), image.isSignedDataType());
-
-                    Sequence binarySequenceForConnectedComponentExtraction = new Sequence();
-                    binarySequenceForConnectedComponentExtraction.setImage(0, 0, imageOut);
-                    addConnectedComponentDetection(binarySequenceForConnectedComponentExtraction, detectionList, t,
-                            inputSequence);
-
-                    if (computeBinaryDetection)
-                    {
-                        binarySequence.setImage(t, 0, imageOut);
-                    }
-
-                }
+                // 2D
+                tasks.add(processor.submit(new UDWTWaveletCore2DProcessor(sequenceIn, t, numScales, detectNegative,
+                        useROIforWATcomputation, computeBinaryDetection)));
             }
         }
 
         //
         // 3D Image ( with the force2DWavelets for 3D enabled )
         //
-
-        if (inputSequence.getSizeZ() > 1 && force2DWaveletsFor3D == true)
+        if (sequenceIn.getSizeZ() > 1 && force2DWaveletsFor3D == true)
         {
             System.out.println("Entering force 2D wavelet for 3D");
+
+            if (B3SplineUDWT.isNumberOfScaleOkForImage2D(sequenceIn.getSizeX(), sequenceIn.getSizeY(),
+                    getNumberOfMaxEnabledScale()) == false)
             {
-                B3SplineUDWT waveletTransform = new B3SplineUDWT();
-                if (waveletTransform.isNumberOfScaleOkForImage2D(inputSequence.getSizeX(), inputSequence.getSizeY(),
-                        getNumberOfMaxEnabledScale()) == false)
-                {
-                    System.err.println("Scale configuration error (your image is too small for this scale)");
-                    return detectionList;
-                }
+                System.err.println("Scale configuration error (your image is too small for this scale)");
+                return detectionList;
             }
 
             for (int t = 0; t < sequenceIn.getSizeT(); t++)
             {
-                Sequence binary3DOutput = new Sequence();
-
-                for (int z = 0; z < sequenceIn.getSizeZ(); z++)
-                {
-                    // build boolean mask for this frame / slice
-                    final boolean[] mask = buildBinaryMask(bounds, rois, t, z);
-
-                    // IcyBufferedImage image = inputSequence.getFirstImage();
-                    IcyBufferedImage image = inputSequence.getImage(t, z);
-
-                    // compute scales
-
-                    final float dataIn[] = Array1DUtil.arrayToFloatArray(image.getDataXY(0), image.isSignedDataType());
-                    // decompose the image
-                    B3SplineUDWT waveletTransform = new B3SplineUDWT();
-
-                    float[][] scales;
-                    try
-                    {
-                        scales = waveletTransform.b3WaveletScales2D(dataIn, image.getWidth(), image.getHeight(),
-                                numScales);
-                    }
-                    catch (WaveletConfigException e1)
-                    {
-                        e1.printStackTrace();
-                        return detectionList;
-                    }
-                    float[][] coefficients = waveletTransform.b3WaveletCoefficients2D(scales, dataIn, numScales,
-                            image.getWidth() * image.getHeight());
-                    Sequence resultSequence = new Sequence();
-                    resultSequence.setName("WaveletCoefficients");
-
-                    // Apply threshold to coefficients but not last one ( residual )
-
-                    // Filtering
-                    for (int i = 0; i < coefficients.length - 1; i++)
-                    {
-                        if (detectNegative)
-                        {
-                            for (int ii = 0; ii < coefficients[i].length; ii++)
-                            {
-                                coefficients[i][ii] = -coefficients[i][ii];
-                            }
-                        }
-
-                        filter_wat(coefficients[i], i, inputSequence.getWidth(), inputSequence.getHeight(), mask);
-
-                    }
-
-                    // TODO: Instead of putting it to residual image 0 , remove it from reconstruction
-                    { // fill of 0 the residual image
-                        float c[] = coefficients[coefficients.length - 1];
-                        for (int i = 0; i < c.length; i++)
-                        {
-                            c[i] = 0;
-                        }
-                    }
-
-                    // Icy.addSequence(resultSequence);
-                    resultSequence.dataChanged();
-                    // reconstruct the image from the wavelet coefficients
-                    final IcyBufferedImage imageOut = new IcyBufferedImage(image.getWidth(), image.getHeight(), 1,
-                            TypeUtil.TYPE_BYTE);
-                    float[] binaryDetectionResult = new float[image.getWidth() * image.getHeight()];
-
-                    // waveletTransform.b3WaveletReconstruction2D(coefficients, coefficients[numScales], binaryDetectionResult, numScales,
-                    // image.getWidth()*image.getHeight());
-                    waveletTransform.b3SpotConstruction2D(coefficients, binaryDetectionResult, numScales,
-                            image.getWidth() * image.getHeight(), UDWTScaleArrayList);
-
-                    // Binarisation de la reconstruction.
-                    {
-                        for (int i = 0; i < binaryDetectionResult.length; i++)
-                        {
-                            if (binaryDetectionResult[i] != 0) // >
-                            {
-                                binaryDetectionResult[i] = 255;
-                            }
-                            else
-                            {
-                                binaryDetectionResult[i] = 0;
-                            }
-                        }
-                    }
-
-                    ArrayUtil.arrayToArray(binaryDetectionResult, imageOut.getDataXY(0), image.isSignedDataType());
-
-                    // Sequence binarySequenceForConnectedComponentExtraction = new Sequence();
-                    binary3DOutput.setImage(0, z, imageOut);
-                    // binarySequenceForConnectedComponentExtraction.setImage(0, 0, imageOut);
-
-                    if (computeBinaryDetection)
-                    {
-                        binarySequence.setImage(t, z, imageOut);
-                    }
-
-                }
-
-                // Icy.getMainInterface().addSequence( binary3DOutput );
-                addConnectedComponentDetection(binary3DOutput, detectionList, t, inputSequence);
-
+                tasks.add(processor.submit(new UDWTWaveletCore2D3DProcessor(sequenceIn, t, numScales, detectNegative,
+                        useROIforWATcomputation, computeBinaryDetection)));
             }
-
-            // ******* FIN PARTIE 2D
-
-            // {
-            // B3SplineUDWT waveletTransform = new B3SplineUDWT();
-            // if ( waveletTransform.isNumberOfScaleOkForImage3D(
-            // inputSequence.getSizeX(),
-            // inputSequence.getSizeY(), inputSequence.getSizeZ(),
-            // getNumberOfMaxEnabledScale() ) == false )
-            // {
-            // int scale2 = waveletTransform.getMinSize( 2 );
-            // int scale3 = waveletTransform.getMinSize( 3 );
-            // int scale4 = waveletTransform.getMinSize( 4 );
-            //
-            // MessageDialog.showDialog( "<html><center>There is a problem with the scale configuration (but don't worry, read this):" +
-            // "<br><br>To run in 3D, the wavelet algorithm needs a number of slices depending on the scale(s) you enabled:" +
-            // "<br>"+
-            // "<br>Scale 2 : "+ scale2 + " slices"+
-            // "<br>Scale 3 : "+ scale3 + " slices"+
-            // "<br>Scale 4 : "+ scale4 + " slices"+
-            // "<br>"+
-            // "<br>To use those parameters you need more Z in your stack.<br>Still, you can bypass this problem by selecting" +
-            // "<br>the option <b>Force use of 2D Wavelets for 3D</b> in the detector panel" +
-            // "<br>In this case, each 2D slices will be computed separately and results will be merged to create the resulting stack," +
-            // "<br>(and you don't need to add more Z slices)," +
-            // "</center></html>" , MessageDialog.WARNING_MESSAGE );
-            //
-            // return detectionList;
-            // }
-            // }
-            //
-            // for ( int t = 0 ; t < sequenceIn.getSizeT() ; t++ )
-            // {
-            // final float[][] dataIn = new float[inputSequence.getSizeZ()][];
-            // for(int z=0; z<inputSequence.getSizeZ(); z++)
-            // dataIn[z] = Array1DUtil.arrayToFloatArray(inputSequence.getDataXY(t, z, 0), inputSequence.isSignedDataType());
-            // B3SplineUDWT waveletTransform = new B3SplineUDWT();
-            //
-            // float[][][] scales;
-            // try {
-            // scales = waveletTransform.b3WaveletScales3D(dataIn, inputSequence.getSizeX(), inputSequence.getSizeY(), inputSequence.getSizeZ(), numScales);
-            // } catch (WaveletConfigException e1) {
-            // e1.printStackTrace();
-            // return detectionList;
-            // }
-            // float[][][] coefficients = waveletTransform.b3WaveletCoefficients3D(scales, dataIn, numScales, inputSequence.getSizeX()*inputSequence.getSizeY(),
-            // inputSequence.getSizeZ());
-            //
-            // // Apply threshold to coefficients but not last one ( residual )
-            //
-            // // Filtering
-            //
-            // for ( int scale = 0 ; scale < coefficients.length-1 ; scale++ )
-            // {
-            // for ( int z = 0 ; z < coefficients[scale].length ; z++ )
-            // {
-            // if ( detectNegative )
-            // {
-            // for ( int ii = 0 ; ii < coefficients[scale][z].length ; ii++ )
-            // {
-            // coefficients[scale][z][ii]=-coefficients[scale][z][ii];
-            // }
-            // }
-            //
-            // filter_wat( coefficients[scale][z] , scale , inputSequence.getWidth() , inputSequence.getHeight() , mask );
-            // }
-            // }
-            //
-            // // TODO: Instead of putting it to residual image 0 , remove it from reconstruction
-            // { // fill of 0 the residual image
-            // float c[][] = coefficients[coefficients.length-1];
-            // for ( int z = 0 ; z < c.length ; z++ )
-            // {
-            // for ( int i = 0 ; i < c[z].length ; i++ )
-            // {
-            // c[z][i]=0;
-            // }
-            // }
-            // }
-            //
-            // //reconstruct the image from the wavelet coefficients
-            // //Sequence reconstructionSequence = new Sequence();
-            // float[][] reconstruction = new float[inputSequence.getSizeZ()][inputSequence.getSizeX()*inputSequence.getSizeY()];
-            // //waveletTransform.b3WaveletReconstruction3D(coefficients, coefficients[numScales], reconstruction, numScales,
-            // inputSequence.getSizeX()*inputSequence.getSizeY(), inputSequence.getSizeZ());
-            // waveletTransform.b3SpotConstruction3D(coefficients, reconstruction, numScales, inputSequence.getSizeX()*inputSequence.getSizeY(),
-            // inputSequence.getSizeZ() , UDWTScaleArrayList );
-            //
-            // //waveletTransform.b3SpotConstruction2D( coefficients, binaryDetectionResult, numScales, image.getWidth()*image.getHeight() , UDWTScaleArrayList
-            // );
-            //
-            // // Binarisation de la reconstruction.
-            //
-            // for ( int z = 0 ; z < reconstruction.length ; z++ )
-            // {
-            // for ( int i = 0 ; i < reconstruction[z].length ; i++ )
-            // {
-            //
-            // if ( reconstruction[z][i] != 0 ) // > 0
-            // {
-            // reconstruction[z][i] = 255;
-            // }else
-            // {
-            // reconstruction[z][i] = 0;
-            // }
-            // }
-            // }
-            //
-            // VolumetricImage vOut = new VolumetricImage();
-            // for (int z=0; z<inputSequence.getSizeZ(); z++)
-            // {
-            // final IcyBufferedImage imageOut = new IcyBufferedImage(inputSequence.getSizeX(), inputSequence.getSizeY(), 1, TypeUtil.TYPE_BYTE);
-            // ArrayUtil.arrayToArray(reconstruction[z], imageOut.getDataXY(0), true);
-            // vOut.setImage(z, imageOut);
-            // }
-            // Sequence binarySequenceForConnectedComponentExtraction = new Sequence();
-            // binarySequenceForConnectedComponentExtraction.addVolumetricImage( 0 , vOut );
-            // addConnectedComponentDetection( binarySequenceForConnectedComponentExtraction , detectionList , t , inputSequence );
-            //
-            //
-            // if ( computeBinaryDetection )
-            // {
-            // binarySequence.addVolumetricImage(t, vOut);
-            // }
-            // }
-
         }
+
+        // ******* FIN PARTIE 2D
 
         //
         // 3D Image ( classic, without the force2DWavelets for 3D enabled )
         //
-
-        if (inputSequence.getSizeZ() > 1 && force2DWaveletsFor3D == false)
+        if (sequenceIn.getSizeZ() > 1 && force2DWaveletsFor3D == false)
         {
+            if (B3SplineUDWT.isNumberOfScaleOkForImage3D(sequenceIn.getSizeX(), sequenceIn.getSizeY(),
+                    sequenceIn.getSizeZ(), getNumberOfMaxEnabledScale()) == false)
             {
-                B3SplineUDWT waveletTransform = new B3SplineUDWT();
-                if (waveletTransform.isNumberOfScaleOkForImage3D(inputSequence.getSizeX(), inputSequence.getSizeY(),
-                        inputSequence.getSizeZ(), getNumberOfMaxEnabledScale()) == false)
-                {
-                    int scale2 = waveletTransform.getMinSize(2);
-                    int scale3 = waveletTransform.getMinSize(3);
-                    int scale4 = waveletTransform.getMinSize(4);
+                int scale2 = B3SplineUDWT.getMinSize(2);
+                int scale3 = B3SplineUDWT.getMinSize(3);
+                int scale4 = B3SplineUDWT.getMinSize(4);
 
-                    MessageDialog.showDialog(
-                            "<html><center>There is a problem with the scale configuration (but don't worry, read this):"
-                                    + "<br><br>To run in 3D, the wavelet algorithm needs a number of slices depending on the scale(s) you enabled:"
-                                    + "<br>" + "<br>Scale 2 : " + scale2 + " slices" + "<br>Scale 3 : " + scale3
-                                    + " slices" + "<br>Scale 4 : " + scale4 + " slices" + "<br>"
-                                    + "<br>To use those parameters you need more Z in your stack.<br>Still, you can bypass this problem by selecting"
-                                    + "<br>the option <b>Force use of 2D Wavelets for 3D</b> in the detector panel"
-                                    + "<br>In this case, each 2D slices will be computed separately and results will be merged to create the resulting stack,"
-                                    + "<br>(and you don't need to add more Z slices),"
-                                    + "<br>The sequence file name is: " + inputSequence.getFilename()
-                                    + "</center></html>",
-                            MessageDialog.WARNING_MESSAGE);
+                MessageDialog.showDialog(
+                        "<html><center>There is a problem with the scale configuration (but don't worry, read this):"
+                                + "<br><br>To run in 3D, the wavelet algorithm needs a number of slices depending on the scale(s) you enabled:"
+                                + "<br>" + "<br>Scale 2 : " + scale2 + " slices" + "<br>Scale 3 : " + scale3 + " slices"
+                                + "<br>Scale 4 : " + scale4 + " slices" + "<br>"
+                                + "<br>To use those parameters you need more Z in your stack.<br>Still, you can bypass this problem by selecting"
+                                + "<br>the option <b>Force use of 2D Wavelets for 3D</b> in the detector panel"
+                                + "<br>In this case, each 2D slices will be computed separately and results will be merged to create the resulting stack,"
+                                + "<br>(and you don't need to add more Z slices)," + "<br>The sequence file name is: "
+                                + sequenceIn.getFilename() + "</center></html>",
+                        MessageDialog.WARNING_MESSAGE);
 
-                    return detectionList;
-                }
+                return detectionList;
             }
 
             for (int t = 0; t < sequenceIn.getSizeT(); t++)
             {
-                final float[][] dataIn = new float[inputSequence.getSizeZ()][];
-                for (int z = 0; z < inputSequence.getSizeZ(); z++)
-                    dataIn[z] = Array1DUtil.arrayToFloatArray(inputSequence.getDataXY(t, z, 0),
-                            inputSequence.isSignedDataType());
-                B3SplineUDWT waveletTransform = new B3SplineUDWT();
+                tasks.add(processor.submit(new UDWTWaveletCore3DProcessor(sequenceIn, t, numScales, detectNegative,
+                        useROIforWATcomputation, computeBinaryDetection)));
+            }
+        }
 
-                float[][][] scales;
+        binarySequence.beginUpdate();
+        try
+        {
+            boolean exception = false;
+            for (Future<?> task : tasks)
+            {
                 try
                 {
-                    scales = waveletTransform.b3WaveletScales3D(dataIn, inputSequence.getSizeX(),
-                            inputSequence.getSizeY(), inputSequence.getSizeZ(), numScales);
+                    final List<DetectionSpot> spots = (List<DetectionSpot>) task.get();
+                    if ((spots != null) && !spots.isEmpty())
+                        detectionList.addAll(spots);
                 }
-                catch (WaveletConfigException e1)
+                catch (InterruptedException ex)
                 {
-                    e1.printStackTrace();
-                    return detectionList;
+                    // stop now
+                    processor.removeAllWaitingTasks();
+                    processor.shutdownNow();
+
+                    // re-throw it
+                    throw new InterruptedException("SpotDetector.computeDetection(..) process interrupted.");
                 }
-                float[][][] coefficients = waveletTransform.b3WaveletCoefficients3D(scales, dataIn, numScales,
-                        inputSequence.getSizeX() * inputSequence.getSizeY(), inputSequence.getSizeZ());
-
-                // Apply threshold to coefficients but not last one ( residual )
-
-                // Filtering
-
-                final boolean[][] masks = new boolean[inputSequence.getSizeZ()][];
-
-                // build boolean masks for all slices
-                for (int z = 0; z < masks.length; z++)
-                    masks[z] = buildBinaryMask(bounds, rois, t, z);
-
-                for (int scale = 0; scale < coefficients.length - 1; scale++)
+                catch (ExecutionException e)
                 {
-                    for (int z = 0; z < coefficients[scale].length; z++)
+                    // display it only once
+                    if (!exception)
                     {
-                        if (detectNegative)
-                        {
-                            for (int ii = 0; ii < coefficients[scale][z].length; ii++)
-                            {
-                                coefficients[scale][z][ii] = -coefficients[scale][z][ii];
-                            }
-                        }
-
-                        filter_wat(coefficients[scale][z], scale, inputSequence.getWidth(), inputSequence.getHeight(),
-                                masks[z]);
+                        e.getCause().printStackTrace();
+                        exception = true;
                     }
-                }
-
-                // TODO: Instead of putting it to residual image 0 , remove it from reconstruction
-                { // fill of 0 the residual image
-                    float c[][] = coefficients[coefficients.length - 1];
-                    for (int z = 0; z < c.length; z++)
-                    {
-                        for (int i = 0; i < c[z].length; i++)
-                        {
-                            c[z][i] = 0;
-                        }
-                    }
-                }
-
-                // reconstruct the image from the wavelet coefficients
-                // Sequence reconstructionSequence = new Sequence();
-                float[][] reconstruction = new float[inputSequence.getSizeZ()][inputSequence.getSizeX()
-                        * inputSequence.getSizeY()];
-                // waveletTransform.b3WaveletReconstruction3D(coefficients, coefficients[numScales], reconstruction, numScales,
-                // inputSequence.getSizeX()*inputSequence.getSizeY(), inputSequence.getSizeZ());
-                waveletTransform.b3SpotConstruction3D(coefficients, reconstruction, numScales,
-                        inputSequence.getSizeX() * inputSequence.getSizeY(), inputSequence.getSizeZ(),
-                        UDWTScaleArrayList);
-
-                // waveletTransform.b3SpotConstruction2D( coefficients, binaryDetectionResult, numScales, image.getWidth()*image.getHeight() ,
-                // UDWTScaleArrayList );
-
-                // Binarisation de la reconstruction.
-
-                for (int z = 0; z < reconstruction.length; z++)
-                {
-                    for (int i = 0; i < reconstruction[z].length; i++)
-                    {
-
-                        if (reconstruction[z][i] != 0) // > 0
-                        {
-                            reconstruction[z][i] = 255;
-                        }
-                        else
-                        {
-                            reconstruction[z][i] = 0;
-                        }
-                    }
-                }
-
-                VolumetricImage vOut = new VolumetricImage();
-                for (int z = 0; z < inputSequence.getSizeZ(); z++)
-                {
-                    final IcyBufferedImage imageOut = new IcyBufferedImage(inputSequence.getSizeX(),
-                            inputSequence.getSizeY(), 1, TypeUtil.TYPE_BYTE);
-                    ArrayUtil.arrayToArray(reconstruction[z], imageOut.getDataXY(0), true);
-                    vOut.setImage(z, imageOut);
-                }
-                Sequence binarySequenceForConnectedComponentExtraction = new Sequence();
-                binarySequenceForConnectedComponentExtraction.addVolumetricImage(0, vOut);
-                addConnectedComponentDetection(binarySequenceForConnectedComponentExtraction, detectionList, t,
-                        inputSequence);
-
-                if (computeBinaryDetection)
-                {
-                    binarySequence.addVolumetricImage(t, vOut);
                 }
             }
-
         }
-        binarySequence.dataChanged();
+        finally
+        {
+            binarySequence.dataChanged();
+            binarySequence.endUpdate();
+        }
 
         if (computeBinaryDetection)
         {
@@ -697,10 +609,9 @@ public class UDWTWaveletCore
         }
 
         return detectionList;
-
     }
 
-    private boolean[] buildBinaryMask(Rectangle bounds, List<ROI> rois, int t, int z) throws InterruptedException
+    static boolean[] buildBinaryMask(Rectangle bounds, List<ROI> rois, int t, int z) throws InterruptedException
     {
         if (rois.isEmpty())
             return null;
@@ -740,15 +651,14 @@ public class UDWTWaveletCore
             lambdac[i] = Math.sqrt(2 * Math.log(width * height / (1 << (2 * i))));
         }
 
-        ImageMathInfo imageCaract = avesigma(data, mask);
-
+        float mad = avesigma(data, mask);
         double dcoeff[] = new double[getNumberOfMaxEnabledScale()]; // was fixed to 5.
 
         for (int i = 0; i < getNumberOfMaxEnabledScale(); i++)
         {
             dcoeff[i] = getScaleThreshold(i) / 100.0d;
         }
-        double coeffThr = (lambdac[depth + 1] * imageCaract.mad) / dcoeff[depth];
+        double coeffThr = (lambdac[depth + 1] * mad) / dcoeff[depth];
 
         for (int i = 0; i < data.length; i++)
         {
@@ -761,29 +671,21 @@ public class UDWTWaveletCore
                 data[i] = 0;
             }
         }
-
-    }
-
-    private class ImageMathInfo
-    {
-        double mad;
     }
 
     /**
      * @param m
      * @return
      */
-    private ImageMathInfo avesigma(float[] image, boolean mask[])
+    private static float avesigma(float[] image, boolean mask[])
     {
-        ImageMathInfo ic = new ImageMathInfo();
-        ic.mad = getMeanAverageDistance(image, mask);
-        return ic;
+        return getMeanAverageDistance(image, mask);
     }
 
     /**
      * @return mean average distance
      */
-    private float getMeanAverageDistance(float[] data, boolean mask[])
+    private static float getMeanAverageDistance(float[] data, boolean mask[])
     {
         float mean = getMean(data, mask);
         float a = 0;
@@ -815,13 +717,12 @@ public class UDWTWaveletCore
 
             if (nbValue > 0)
                 return a / nbValue;
-
         }
 
         return 0;
     }
 
-    private float getVar(float[] data)
+    private static float getVar(float[] data)
     {
         if (data.length <= 1)
             return 0;
@@ -840,7 +741,7 @@ public class UDWTWaveletCore
         return (sum2 - sum * sum / data.length) / (data.length - 1);
     }
 
-    private float getMean(float[] data, boolean mask[])
+    private static float getMean(float[] data, boolean mask[])
     {
         float mean = 0;
         float sum = 0;
@@ -874,50 +775,47 @@ public class UDWTWaveletCore
 
     // FIXME : change the structure of 4D detections into a detection pool for faster access to all the detections of a time or a time and a z
 
-    private ArrayList<DetectionSpot> convert2detectionList(Sequence originalSequence,
-            Map<Integer, List<ConnectedComponent>> result, int t)
+    private List<DetectionSpot> convert2detectionList(Sequence originalSequence, List<ConnectedComponent> components,
+            int t)
     {
+        List<DetectionSpot> detectionList = new ArrayList<DetectionSpot>();
 
-        ArrayList<DetectionSpot> detectionList = new ArrayList<DetectionSpot>();
-
-        for (int i : result.keySet())
+        for (ConnectedComponent cc : components)
         {
-            List<ConnectedComponent> list = result.get(i);
-            for (ConnectedComponent cc : list)
-            {
-                DetectionSpot detection = new DetectionSpot();
+            DetectionSpot detection = new DetectionSpot();
 
-                for (Point3i point : cc.getPoints())
-                {
-                    detection.points.add(
+            for (Point3i point : cc.getIterablePoints())
+                detection.points.add(new Point3D(point.x, point.y, point.z));
 
-                            new Point3D(point.x, point.y, point.z));
-                }
-
-                detection.setT(t);
-                detection.computeMassCenter();
-                computeMinMeanMaxIntensity(detection, originalSequence);
-                detectionList.add(detection);
-
-            }
+            detection.setT(t);
+            detection.computeMassCenter();
+            computeMinMeanMaxIntensity(detection, originalSequence);
+            detectionList.add(detection);
         }
 
         return detectionList;
-
     }
 
     private void computeMinMeanMaxIntensity(DetectionSpot detection, Sequence originalSequence)
     {
-
         double minIntensity = Double.MAX_VALUE;
         double maxIntensity = Double.MIN_VALUE;
         double sumIntensity = 0;
 
+        boolean signed = originalSequence.isSignedDataType();
+        int w = originalSequence.getSizeX();
+        int z = -1;
+        Object data = null;
+        
         for (Point3D point : detection.points)
         {
-
-            IcyBufferedImage image = originalSequence.getImage(detection.getT(), (int) point.z);
-            double value = image.getData((int) point.x, (int) point.y, 0);
+            if ((z != (int)point.z))
+            {
+                z = (int)point.z;
+                data = originalSequence.getDataXY(detection.getT(), (int) point.z, 0);
+            }
+                
+            double value = Array1DUtil.getValue(data, ((int) point.y * w) +  (int) point.x, signed);
 
             if (value < minIntensity)
                 minIntensity = value;
@@ -925,7 +823,6 @@ public class UDWTWaveletCore
                 maxIntensity = value;
 
             sumIntensity += value;
-
         }
 
         detection.maxIntensity = maxIntensity;
@@ -933,11 +830,8 @@ public class UDWTWaveletCore
 
         double averageIntensity = 0;
         if (detection.points.size() > 0)
-        {
             averageIntensity = sumIntensity / detection.points.size();
-        }
+
         detection.meanIntensity = averageIntensity;
-
     }
-
 }
