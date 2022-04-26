@@ -89,7 +89,7 @@ public class B3SplineUDWT
      *        number of scale
      * @return <code>true</code> if the number of scale is ok for the specified image dimension
      */
-    public boolean isNumberOfScaleOkForImage2D(int width, int height, int numScales)
+    public static boolean isNumberOfScaleOkForImage2D(int width, int height, int numScales)
     {
         int minSize = getMinSize(numScales); // 5+(int)(Math.pow(2, numScales-1))*4;//compute the minimum size for numScales scales
         if (width < minSize || height < minSize)// image size is too small, return an exception
@@ -110,7 +110,7 @@ public class B3SplineUDWT
      *        number of scale
      * @return <code>true</code> if the number of scale is ok for the specified image dimension
      */
-    public boolean isNumberOfScaleOkForImage3D(int width, int height, int depth, int numScales)
+    public static boolean isNumberOfScaleOkForImage3D(int width, int height, int depth, int numScales)
     {
         int minSize = getMinSize(numScales); // 5+(int)(Math.pow(2, numScales-1))*4;//compute the minimum size for numScales scales
         if (width < minSize || height < minSize || depth < minSize)// image size is too small, return an exception
@@ -125,7 +125,7 @@ public class B3SplineUDWT
      *        number of scale level
      * @return the minimum size for the specified number of scale level
      */
-    public int getMinSize(int numScales)
+    public static int getMinSize(int numScales)
     {
         return 5 + (int) (Math.pow(2, numScales - 1)) * 4;
     }
