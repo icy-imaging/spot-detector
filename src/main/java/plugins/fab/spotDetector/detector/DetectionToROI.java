@@ -82,7 +82,7 @@ public class DetectionToROI
     public static ArrayList<ROI> convertDetectionToROI(ArrayList<DetectionSpot> detectionList)
             throws InterruptedException
     {
-        Processor processor = new Processor(detectionList.size(), SystemUtil.getNumberOfCPUs() * 2);
+        Processor processor = new Processor(Math.max(256, detectionList.size()), SystemUtil.getNumberOfCPUs() * 2);
         List<Future<List<ROI>>> tasks = new ArrayList<>();
         final int size = detectionList.size();
         final int groupsSize = 1000;
