@@ -113,7 +113,7 @@ public class UDWTWaveletCore
 
                 // reconstruct the image from the wavelet coefficients
                 final IcyBufferedImage imageOut = new IcyBufferedImage(image.getWidth(), image.getHeight(), 1,
-                        DataType.BYTE);
+                        DataType.UBYTE);
                 float[] binaryDetectionResult = new float[image.getWidth() * image.getHeight()];
 
                 // waveletTransform.b3WaveletReconstruction2D(coefficients, coefficients[numScales], binaryDetectionResult, numScales,
@@ -223,7 +223,7 @@ public class UDWTWaveletCore
 
                 // reconstruct the image from the wavelet coefficients
                 final IcyBufferedImage imageOut = new IcyBufferedImage(image.getWidth(), image.getHeight(), 1,
-                        DataType.BYTE);
+                        DataType.UBYTE);
                 float[] binaryDetectionResult = new float[image.getWidth() * image.getHeight()];
 
                 waveletTransform.b3SpotConstruction2D(coefficients, binaryDetectionResult, numScales,
@@ -350,7 +350,7 @@ public class UDWTWaveletCore
             for (int z = 0; z < sequence.getSizeZ(); z++)
             {
                 final IcyBufferedImage imageOut = new IcyBufferedImage(sequence.getSizeX(), sequence.getSizeY(), 1,
-                        DataType.BYTE);
+                        DataType.UBYTE);
                 ArrayUtil.arrayToArray(reconstruction[z], imageOut.getDataXY(0), true);
                 vOut.setImage(z, imageOut);
             }
@@ -484,7 +484,7 @@ public class UDWTWaveletCore
         binarySequence.setName("Binary Sequence"); // Check if this name already exists and change it if needed.
 
         // final Processor processor = new Processor(1);
-        final Processor processor = new Processor(sequenceIn.getSizeT(), SystemUtil.getNumberOfCPUs() * 2);
+        final Processor processor = new Processor(Math.max(256, sequenceIn.getSizeT()), SystemUtil.getNumberOfCPUs() * 2);
         final List<Future<?>> tasks = new ArrayList<Future<?>>();
 
         //
