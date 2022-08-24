@@ -55,26 +55,6 @@
         </dependency>
         <dependency>
             <groupId>org.bioimageanalysis.icy</groupId>
-            <artifactId>icy-bioformats</artifactId>
-            <version>${icy-bioformats.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.bioimageanalysis.icy</groupId>
-            <artifactId>icy-vtk</artifactId>
-            <version>${icy-vtk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.media</groupId>
-            <artifactId>jai-core</artifactId>
-            <version>${jai-core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sourceforge.jexcelapi</groupId>
-            <artifactId>jxl</artifactId>
-            <version>${jxl.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.bioimageanalysis.icy</groupId>
             <artifactId>spot-detection-utilities</artifactId>
             <version>${spot-detection-utilities.version}</version>
         </dependency>
