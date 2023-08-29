@@ -1,51 +1,44 @@
 /*
- * Copyright 2010, 2011 Institut Pasteur.
+ * Copyright (c) 2010-2023. Institut Pasteur.
  *
- * This file is part of ICY.
- *
- * ICY is free software: you can redistribute it and/or modify
+ * This file is part of Icy.
+ * Icy is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * ICY is distributed in the hope that it will be useful,
+ * Icy is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with ICY. If not, see <http://www.gnu.org/licenses/>.
+ * along with Icy. If not, see <https://www.gnu.org/licenses/>.
  */
+
 package plugins.fab.spotDetector.roi;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
-import javax.swing.border.TitledBorder;
-
-import icy.gui.main.MainAdapter;
-import icy.gui.main.MainEvent;
+import icy.gui.main.GlobalSequenceListener;
 import icy.gui.util.GuiUtil;
 import icy.main.Icy;
 import icy.roi.ROI;
-import icy.roi.ROI2D;
 import icy.sequence.Sequence;
 import jxl.write.WritableSheet;
 import plugins.fab.spotDetector.DetectionSpot;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 import plugins.kernel.roi.roi2d.ROI2DRectangle;
 
-public class ROIFromSequence extends ROIDetectionAbstract
-{
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+public class ROIFromSequence extends ROIDetectionAbstract {
     JLabel currentSequenceNameLabel = new JLabel();
     Color labelDefaultColor = null;
 
-    public ROIFromSequence()
-    {
+    public ROIFromSequence() {
         // getPanel().add(new JLabel("from sequence"));
 
         // getPanel().add(new JLabel("Existing ROIs are used to perform the computation"));
@@ -63,42 +56,49 @@ public class ROIFromSequence extends ROIDetectionAbstract
 
         refreshCurrentSequenceLabel();
 
-        Icy.getMainInterface().addListener(new MainAdapter()
-        {
+        Icy.getMainInterface().addGlobalSequenceListener(new GlobalSequenceListener() {
+            /**
+             * {@inheritDoc}
+             *
+             * @param sequence {@inheritDoc}
+             */
             @Override
-            public void sequenceFocused(MainEvent event)
-            {
+            public void sequenceOpened(final Sequence sequence) {
                 refreshCurrentSequenceLabel();
+            }
+
+            /**
+             * {@inheritDoc}
+             *
+             * @param sequence {@inheritDoc}
+             */
+            @Override
+            public void sequenceClosed(final Sequence sequence) {
+
             }
         });
     }
 
-    private void refreshCurrentSequenceLabel()
-    {
-        Sequence sequence = getFocusedSequence();
-        if (sequence == null)
-        {
+    private void refreshCurrentSequenceLabel() {
+        final Sequence sequence = getActiveSequence();
+        if (sequence == null) {
             currentSequenceNameLabel.setForeground(Color.red);
             currentSequenceNameLabel.setText("No sequence loaded");
         }
-        else
-        {
+        else {
             currentSequenceNameLabel.setForeground(labelDefaultColor);
             currentSequenceNameLabel.setText(sequence.getName());
         }
     }
 
     @Override
-    public void process(GlobalDetectionToken gdt)
-    {
-
-        ArrayList<ROI> roiArrayList;
+    public void process(final GlobalDetectionToken gdt) {
+        final ArrayList<ROI> roiArrayList;
 
         roiArrayList = gdt.inputSequence.getROIs();
 
-        ArrayList<ROI> roiArrayListCopy = new ArrayList<ROI>(roiArrayList);
-        for (ROI roi : roiArrayListCopy)
-        {
+        final ArrayList<ROI> roiArrayListCopy = new ArrayList<>(roiArrayList);
+        for (final ROI roi : roiArrayListCopy) {
             if (roi.getName().startsWith("spot"))
                 roiArrayList.remove(roi);
         }
@@ -107,16 +107,13 @@ public class ROIFromSequence extends ROIDetectionAbstract
 
         // remove detection if they are in a black ROI
 
-        ArrayList<DetectionSpot> cloneDetectionList = new ArrayList<DetectionSpot>(gdt.detectionResult);
-        for (ROI roi : roiArrayList)
-        {
+        final ArrayList<DetectionSpot> cloneDetectionList = new ArrayList<>(gdt.detectionResult);
+        for (final ROI roi : roiArrayList) {
             if (roi.getColor().getRed() == 0 && roi.getColor().getGreen() == 0 && roi.getColor().getBlue() == 0) // roi is black
             {
-                for (DetectionSpot detectionSpot : cloneDetectionList)
-                {
+                for (final DetectionSpot detectionSpot : cloneDetectionList) {
                     if (roi.contains(detectionSpot.getMassCenter().x, detectionSpot.getMassCenter().y,
-                            detectionSpot.getMassCenter().z, detectionSpot.getT(), -1))
-                    {
+                            detectionSpot.getMassCenter().z, detectionSpot.getT(), -1)) {
                         gdt.detectionResult.remove(detectionSpot);
                     }
                 }
@@ -125,29 +122,25 @@ public class ROIFromSequence extends ROIDetectionAbstract
 
         // create a hashMap with the detections binded to ROI
 
-        HashMap<ROI, ArrayList<DetectionSpot>> ROI2Detection = new HashMap<ROI, ArrayList<DetectionSpot>>();
+        final HashMap<ROI, ArrayList<DetectionSpot>> ROI2Detection = new HashMap<>();
 
         // create a fake ROI taking all the sequence if no existing ROI on sequence.
-        if (roiArrayList.size() == 0)
-        {
-            ROI2Detection.put(new ROI2DRectangle(gdt.inputSequence.getBounds2D()),
-                    (ArrayList<DetectionSpot>) gdt.detectionResult.clone());
+        if (roiArrayList.isEmpty()) {
+            @SuppressWarnings("unchecked") final // clone method return only Object
+            ArrayList<DetectionSpot> value = (ArrayList<DetectionSpot>) gdt.detectionResult.clone();
+            ROI2Detection.put(new ROI2DRectangle(gdt.inputSequence.getBounds2D()), value);
         }
-        else
-        { // there is ROI is the sequence
+        else { // there is ROI is the sequence
 
             // setup hashMap
-            for (ROI roi : roiArrayList)
-                ROI2Detection.put(roi, new ArrayList<DetectionSpot>());
+            for (final ROI roi : roiArrayList)
+                ROI2Detection.put(roi, new ArrayList<>());
 
             // fill hashMap
-            for (ROI roi : roiArrayList)
-            {
-                for (DetectionSpot spot : gdt.detectionResult)
-                {
+            for (final ROI roi : roiArrayList) {
+                for (final DetectionSpot spot : gdt.detectionResult) {
                     if (roi.contains(spot.getMassCenter().x, spot.getMassCenter().y, spot.getMassCenter().z,
-                            spot.getT(), -1))
-                    {
+                            spot.getT(), -1)) {
                         ROI2Detection.get(roi).add(spot);
                     }
                 }
@@ -158,24 +151,17 @@ public class ROIFromSequence extends ROIDetectionAbstract
 
         gdt.detectionResult.clear();
         // Set<Entry<ROI2D, ArrayList<DetectionSpot>>> roiList = ROI2Detection.keySet();
-        for (ROI roi : ROI2Detection.keySet())
-        {
-            for (DetectionSpot ds : ROI2Detection.get(roi))
-                gdt.detectionResult.add(ds);
+        for (final ROI roi : ROI2Detection.keySet()) {
+            gdt.detectionResult.addAll(ROI2Detection.get(roi));
         }
 
         // set detection with ROI
 
         gdt.roi2detection = ROI2Detection;
-
     }
 
     @Override
-    public void saveXLS(WritableSheet page, GlobalDetectionToken gdt) throws InterruptedException
-    {
-
+    public void saveXLS(final WritableSheet page, final GlobalDetectionToken gdt) throws InterruptedException {
         ROI_XLS_Common_Saver.saveXLS(page, gdt, "ROI From Sequence module");
-
     }
-
 }

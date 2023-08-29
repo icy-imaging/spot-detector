@@ -1,21 +1,21 @@
 /*
- * Copyright 2010, 2011 Institut Pasteur.
+ * Copyright (c) 2010-2023. Institut Pasteur.
  *
- * This file is part of ICY.
- *
- * ICY is free software: you can redistribute it and/or modify
+ * This file is part of Icy.
+ * Icy is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * ICY is distributed in the hope that it will be useful,
+ * Icy is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with ICY. If not, see <http://www.gnu.org/licenses/>.
+ * along with Icy. If not, see <https://www.gnu.org/licenses/>.
  */
+
 package plugins.fab.spotDetector.input;
 
 import icy.file.FileUtil;
@@ -23,8 +23,12 @@ import icy.file.Loader;
 import icy.gui.frame.progress.ProgressFrame;
 import icy.gui.util.GuiUtil;
 import icy.main.Icy;
-import icy.sequence.Sequence;
+import jxl.write.WritableSheet;
+import plugins.fab.spotDetector.GlobalDetectionToken;
+import plugins.fab.spotDetector.GlobalDetectionTokenListener;
 
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -34,168 +38,145 @@ import java.util.Collections;
 import java.util.List;
 import java.util.prefs.Preferences;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.border.TitledBorder;
+public class batchInputDetection extends InputDetectionAbstract implements ActionListener, GlobalDetectionTokenListener {
 
-import jxl.write.WritableSheet;
-import plugins.fab.spotDetector.GlobalDetectionToken;
-import plugins.fab.spotDetector.GlobalDetectionTokenListener;
+    JButton inputFolderButton = new JButton("No folder selected");
+    JLabel fileToProcessLabel = new JLabel("no files to process");
+    ArrayList<File> originalFileToProcessArrayList = new ArrayList<>(); // never altered but by the user himself
+    ArrayList<File> processFileToProcessArrayList = new ArrayList<>(); // list used while processing
 
-public class batchInputDetection extends InputDetectionAbstract implements ActionListener, GlobalDetectionTokenListener
-{
+    public batchInputDetection() {
 
-	JButton inputFolderButton = new JButton("No folder selected");
-	JLabel fileToProcessLabel = new JLabel("no files to process");
-	ArrayList<File> originalFileToProcessArrayList = new ArrayList<File>(); // never altered but by the user himself
-	ArrayList<File> processFileToProcessArrayList = new ArrayList<File>(); // list used while processing
+        getPanel().setLayout(new BoxLayout(getPanel(), BoxLayout.PAGE_AXIS));
+        getPanel().setBorder(new TitledBorder("Batch Input. Grab all file recursivly but does not enter in 'save' folders"));
 
-    public batchInputDetection()
-    {
-
-    	getPanel().setLayout( new BoxLayout( getPanel() , BoxLayout.PAGE_AXIS ) );
-    	getPanel().setBorder( new TitledBorder( "Batch Input. Grab all file recursivly but does not enter in 'save' folders" ) );
-
-    	getPanel().add( GuiUtil.createLineBoxPanel( Box.createVerticalGlue() ) );
-    	getPanel().add( GuiUtil.createLineBoxPanel( new JLabel("Current input folder:") ) );
-    	getPanel().add( GuiUtil.createLineBoxPanel( Box.createVerticalStrut( 10 ) ) );
-    	getPanel().add( GuiUtil.createLineBoxPanel( inputFolderButton ) );
-    	inputFolderButton.addActionListener( this );
-    	getPanel().add( GuiUtil.createLineBoxPanel( Box.createVerticalStrut( 10 ) ) );
-    	getPanel().add( GuiUtil.createLineBoxPanel( fileToProcessLabel ) );
-    	getPanel().add( GuiUtil.createLineBoxPanel( Box.createVerticalStrut( 50 ) ) );
-    	getPanel().add( GuiUtil.createLineBoxPanel( Box.createVerticalGlue() ) );
+        getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalGlue()));
+        getPanel().add(GuiUtil.createLineBoxPanel(new JLabel("Current input folder:")));
+        getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalStrut(10)));
+        getPanel().add(GuiUtil.createLineBoxPanel(inputFolderButton));
+        inputFolderButton.addActionListener(this);
+        getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalStrut(10)));
+        getPanel().add(GuiUtil.createLineBoxPanel(fileToProcessLabel));
+        getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalStrut(50)));
+        getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalGlue()));
     }
 
 
-	@Override
-	public void detectionFinished() {
+    @Override
+    public void detectionFinished() {
 
-		if ( processFileToProcessArrayList.size() > 0 )
-		{
-			spotDetector.detectionModuleRequestRecompute( true , true );
-		}else
-		{
-			// prepare list for next launch
-			processFileToProcessArrayList = new ArrayList<File>( originalFileToProcessArrayList );
-			progressFrame = null;
-		}
-	}
+        if (!processFileToProcessArrayList.isEmpty()) {
+            spotDetector.detectionModuleRequestRecompute(true, true);
+        }
+        else {
+            // prepare list for next launch
+            processFileToProcessArrayList = new ArrayList<>(originalFileToProcessArrayList);
+            progressFrame = null;
+        }
+    }
 
-	ProgressFrame progressFrame = null ;
+    ProgressFrame progressFrame = null;
 
-	@Override
-	public void process(GlobalDetectionToken gdt) {
+    @Override
+    public void process(final GlobalDetectionToken gdt) {
 
-		Icy.getMainInterface().closeAllViewers();
+        Icy.getMainInterface().closeAllViewers();
 
-		if ( progressFrame == null ) progressFrame = new ProgressFrame("");
+        if (progressFrame == null) progressFrame = new ProgressFrame("");
 
-		progressFrame.setMessage("Processing ... " + processFileToProcessArrayList.size() + " remaining.");
+        progressFrame.setMessage("Processing ... " + processFileToProcessArrayList.size() + " remaining.");
 
-		gdt.addGlobalDetectionTokenListener( this );
+        gdt.addGlobalDetectionTokenListener(this);
 
-		if ( processFileToProcessArrayList.size() > 0 )
-		{
-			String path = processFileToProcessArrayList.remove(0).getAbsolutePath();
-			Sequence sequence = Loader.loadSequence(Loader.getSequenceFileImporter(path, true), path, 0, false);
+        if (!processFileToProcessArrayList.isEmpty()) {
+            final String path = processFileToProcessArrayList.remove(0).getAbsolutePath();
+            gdt.inputSequence = Loader.loadSequence(Loader.getSequenceFileImporter(path, true), path, 0, false);
+        }
 
-			gdt.inputSequence = sequence;
-		}
-
-		if ( processFileToProcessArrayList.size() == 0 )
-		{
-			progressFrame.close();
-		}
-	}
+        if (processFileToProcessArrayList.isEmpty()) {
+            progressFrame.close();
+        }
+    }
 
 
+    @Override
+    public void actionPerformed(final ActionEvent e) {
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == inputFolderButton) {
+            final JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogType(JFileChooser.DIRECTORIES_ONLY);
+            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
-		if ( e.getSource() == inputFolderButton )
-		{
-			JFileChooser fileChooser = new JFileChooser();
-			fileChooser.setDialogType(JFileChooser.DIRECTORIES_ONLY);
-			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            final Preferences preferences = Preferences.userRoot().node("icy/browser");
+            final String browserDirectory = preferences.get("path", "");
 
-	        Preferences preferences = Preferences.userRoot().node("icy/browser");
-	        String browserDirectory = preferences.get("path", "");
+            if (browserDirectory.isEmpty())
+                fileChooser.setCurrentDirectory(new File(browserDirectory));
 
-			if(browserDirectory == "")
-			    fileChooser.setCurrentDirectory(new File(browserDirectory));
+            final int returnValue = fileChooser.showDialog(null, "Root Directory of scan");
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                final String scanDirectory = fileChooser.getSelectedFile().getAbsolutePath();
+                inputFolderButton.setText(scanDirectory);
+                preferences.put("path", fileChooser.getCurrentDirectory().getPath());
+                buildFileList(scanDirectory);
+            }
+        }
 
-			int returnValue = fileChooser.showDialog( null , "Root Directory of scan");
-			if (returnValue == JFileChooser.APPROVE_OPTION)
-			{
-				String scanDirectory = (String)fileChooser.getSelectedFile().getAbsolutePath();
-				inputFolderButton.setText( scanDirectory );
-				preferences.put("path", fileChooser.getCurrentDirectory().getPath() );
-				buildFileList(scanDirectory);
-			}
-		}
+    }
 
-	}
+    private void buildFileList(final String scanDirectory) {
+        final File mainDir = new File(scanDirectory);
+        originalFileToProcessArrayList.clear();
+        scanDir(mainDir);
+        fileToProcessLabel.setText("Total number of files in batch:" + originalFileToProcessArrayList.size());
+    }
 
-	private void buildFileList( String scanDirectory ) {
-		File mainDir = new File( scanDirectory );
-		originalFileToProcessArrayList.clear();
-		scanDir( mainDir );
-		fileToProcessLabel.setText("Total number of files in batch:" + originalFileToProcessArrayList.size() );
-	}
+    public void scanDir(final File directory) {
+        //System.out.println("Getting into dir : " + directory.getAbsolutePath() );
 
-	public void scanDir( File directory )
-	{
-		//System.out.println("Getting into dir : " + directory.getAbsolutePath() );
+        final List<File> listImages;
 
-		List<File> listImages = null;
+        try {
+            final File[] files = directory.listFiles();
+            if (files == null) {
+                JOptionPane.showMessageDialog(null, "No file ! Try selecting the parent directory of this folder", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
-		try
-		{
-			listImages = Arrays.asList( directory.listFiles() );
+            listImages = Arrays.asList(files);
 
-		if ( listImages == null || listImages.size() == 0 )
-			{
-			JOptionPane.showMessageDialog(null, "No file ! Try selecting the parent directory of this folder", "Error", 0);
-			return;
-			}
-		}
-		catch( Exception e )
-		{
-			JOptionPane.showMessageDialog(null, "No file ! Try selecting the parent directory of this folder", "Error", 0);
-			return;
-		}
+            if (listImages.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "No file ! Try selecting the parent directory of this folder", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+        catch (final Exception e) {
+            JOptionPane.showMessageDialog(null, "No file ! Try selecting the parent directory of this folder", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-		Collections.sort(listImages);
+        Collections.sort(listImages);
 
-		for ( File file : listImages )
-		{
-			if ( file.isDirectory() )
-			{
-				String fileAsString = file.getAbsolutePath();
-				if ( fileAsString.contains("save") )
-				{
-					//System.out.println("Skipping directory : " + file );
-					continue; // on ignore les anciennes sauvegarde
-				}
+        for (final File file : listImages) {
+            if (file.isDirectory()) {
+                final String fileAsString = file.getAbsolutePath();
+                if (fileAsString.contains("save")) {
+                    //System.out.println("Skipping directory : " + file );
+                    continue; // on ignore les anciennes sauvegarde
+                }
 
-				scanDir( file );
-				continue;
-			}
+                scanDir(file);
+                continue;
+            }
 
-			if( file.isHidden() ) continue; // evite de se taper des .DSStore chez mac par exemple.
+            if (file.isHidden()) continue; // evite de se taper des .DSStore chez mac par exemple.
 
-			if ( FileUtil.getFileExtension( file.getName(), false ).toLowerCase().contains("xml") ) continue;
+            if (FileUtil.getFileExtension(file.getName(), false).toLowerCase().contains("xml")) continue;
 
-			//System.out.println("file to process: " + file );
-			originalFileToProcessArrayList.add( file );
+            //System.out.println("file to process: " + file );
+            originalFileToProcessArrayList.add(file);
 
-			// Close previous files
+            // Close previous files
 //			while ( getSequences().getSize() > 0 )
 //			{
 //				Sequence sequence = (Sequence) getSequences().get( 0 );
@@ -236,7 +217,6 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
 //				try {
 //					Thread.sleep( 500 );
 //				} catch (InterruptedException e) {
-//					// TODO Auto-generated catch block
 //					e.printStackTrace();
 //				}
 //			}
@@ -246,7 +226,6 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
 //				try {
 //					Thread.sleep( 500 );
 //				} catch (InterruptedException e) {
-//					// TODO Auto-generated catch block
 //					e.printStackTrace();
 //				}
 //			}
@@ -256,22 +235,17 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
 //			sequence = null;
 
 
-		}
+        }
 
-		// copy file in the process list
-		processFileToProcessArrayList = new ArrayList<File>( originalFileToProcessArrayList );
+        // copy file in the process list
+        processFileToProcessArrayList = new ArrayList<>(originalFileToProcessArrayList);
 
-	}
-
-
-	@Override
-	public void saveXLS(WritableSheet page, GlobalDetectionToken gdt) {
-		// TODO Auto-generated method stub
-
-	}
+    }
 
 
-
+    @Override
+    public void saveXLS(final WritableSheet page, final GlobalDetectionToken gdt) {
+    }
 
 
 //	ScannerFileThread scanThread = null;
@@ -378,7 +352,6 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
 //					try {
 //						Thread.sleep( 500 );
 //					} catch (InterruptedException e) {
-//						// TODO Auto-generated catch block
 //						e.printStackTrace();
 //					}
 //				}
@@ -388,7 +361,6 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
 //					try {
 //						Thread.sleep( 500 );
 //					} catch (InterruptedException e) {
-//						// TODO Auto-generated catch block
 //						e.printStackTrace();
 //					}
 //				}
@@ -409,9 +381,6 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
 //		}
 //
 //	}
-
-
-
 
 
 }

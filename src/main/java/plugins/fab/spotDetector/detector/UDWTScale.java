@@ -1,161 +1,147 @@
 /*
- * Copyright 2010, 2011 Institut Pasteur.
- * 
- * This file is part of ICY.
- * 
- * ICY is free software: you can redistribute it and/or modify
+ * Copyright (c) 2010-2023. Institut Pasteur.
+ *
+ * This file is part of Icy.
+ * Icy is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
- * ICY is distributed in the hope that it will be useful,
+ *
+ * Icy is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
- * along with ICY. If not, see <http://www.gnu.org/licenses/>.
+ * along with Icy. If not, see <https://www.gnu.org/licenses/>.
  */
-package plugins.fab.spotDetector.detector;
 
+package plugins.fab.spotDetector.detector;
 
 import icy.gui.util.ComponentUtil;
 import icy.gui.util.GuiUtil;
 
-import java.awt.Dimension;
-
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
+import java.awt.*;
 
-public class UDWTScale implements CaretListener
-{
-	JPanel scalePanel ;
-	JTextField sensitivityTextField;
-//	JLabel errorLabel ;
-	JCheckBox enabledCheckBox;
-	public int scaleNumber;
+public class UDWTScale implements CaretListener {
+    JPanel scalePanel;
+    JTextField sensitivityTextField;
+    //	JLabel errorLabel ;
+    JCheckBox enabledCheckBox;
+    public int scaleNumber;
 
-	public UDWTScale( int scaleNumber , boolean enabled , double threshold ) {		
+    public UDWTScale(final int scaleNumber, final boolean enabled, final double threshold) {
 
-		this.scaleNumber = scaleNumber;
-		
-		enabledCheckBox = new JCheckBox("Scale "+scaleNumber , enabled );
-		sensitivityTextField = new JTextField( ""+threshold );
+        this.scaleNumber = scaleNumber;
+
+        enabledCheckBox = new JCheckBox("Scale " + scaleNumber, enabled);
+        sensitivityTextField = new JTextField("" + threshold);
 //		ComponentUtil.setFixedHeight( thresholdTextField , 22 );
 //		errorLabel = new JLabel("");
 //		errorLabel.setAlignmentX( JLabel.CENTER );
 //		errorLabel.setForeground( Color.red );
-		sensitivityTextField.addCaretListener( this );
+        sensitivityTextField.addCaretListener(this);
 //		JLabel thresholdLabel = new JLabel("Threshold: ");
-		JLabel descriptionLabel = new JLabel("");
+        final JLabel descriptionLabel = new JLabel("");
 //		ComponentUtil.setFixedWidth( thresholdTextField ,100 );
-		ComponentUtil.setFixedSize( sensitivityTextField , new Dimension( 60, 22) );
-		ComponentUtil.setFixedSize( descriptionLabel , new Dimension( 80, 22) );
-		ComponentUtil.setFixedSize( enabledCheckBox , new Dimension( 80, 22) );
-		
-		switch ( scaleNumber )
-		{
-		case 1:
-			descriptionLabel.setText("~1 pixel");
-			break;
-		case 2:
-			descriptionLabel.setText("~3 pixels");
-			break;
-		case 3:
-			descriptionLabel.setText("~7 pixels");
-			break;
-		case 4:
-			descriptionLabel.setText("~13 pixels");
-			break;
-		case 5:
-			descriptionLabel.setText("~25 pixels");
-			break;
-		}
-		
-		scalePanel = new JPanel();
-		scalePanel.setLayout( new BoxLayout(scalePanel , BoxLayout.PAGE_AXIS ) );
-		scalePanel.add( GuiUtil.createLineBoxPanel( 
-				enabledCheckBox , //thresholdLabel , 
-				sensitivityTextField , Box.createHorizontalStrut( 20 ) , descriptionLabel , Box.createHorizontalGlue() ) );
+        ComponentUtil.setFixedSize(sensitivityTextField, new Dimension(60, 22));
+        ComponentUtil.setFixedSize(descriptionLabel, new Dimension(80, 22));
+        ComponentUtil.setFixedSize(enabledCheckBox, new Dimension(80, 22));
 
-		
-		//xLax.createVerticalGlue();
-		
-		//this.setLayout( new BoxLayout( this, BoxLayout.PAGE_AXIS ) );
+        switch (scaleNumber) {
+            case 1:
+                descriptionLabel.setText("~1 pixel");
+                break;
+            case 2:
+                descriptionLabel.setText("~3 pixels");
+                break;
+            case 3:
+                descriptionLabel.setText("~7 pixels");
+                break;
+            case 4:
+                descriptionLabel.setText("~13 pixels");
+                break;
+            case 5:
+                descriptionLabel.setText("~25 pixels");
+                break;
+        }
+
+        scalePanel = new JPanel();
+        scalePanel.setLayout(new BoxLayout(scalePanel, BoxLayout.PAGE_AXIS));
+        scalePanel.add(GuiUtil.createLineBoxPanel(
+                enabledCheckBox, //thresholdLabel ,
+                sensitivityTextField, Box.createHorizontalStrut(20), descriptionLabel, Box.createHorizontalGlue()));
+
+
+        //xLax.createVerticalGlue();
+
+        //this.setLayout( new BoxLayout( this, BoxLayout.PAGE_AXIS ) );
 //		this.add( GuiUtil.createLineBoxPanel( northPane ) );
 //		this.add( GuiUtil.createLineBoxPanel( tmpPanel ) );
 //		scalePanel.add( GuiUtil.createLineBoxPanel( Box.createVerticalGlue() ) );
-		
-		//GuiUtil.createLineBoxPanel( enabledCheckBox , thresholdLabel , thresholdTextField , errorLabel );
-		//scalePanel = GuiUtil.createLineBoxPanel( enabledCheckBox , thresholdLabel , thresholdTextField , errorLabel , Box.gu);
 
-	}
+        //GuiUtil.createLineBoxPanel( enabledCheckBox , thresholdLabel , thresholdTextField , errorLabel );
+        //scalePanel = GuiUtil.createLineBoxPanel( enabledCheckBox , thresholdLabel , thresholdTextField , errorLabel , Box.gu);
 
-	public JPanel getPanel()
-	{
-		return scalePanel;
-	}
+    }
 
-	public void setThreshold( double threshold )
-	{
-		sensitivityTextField.setText( ""+threshold );
-	}
-	
-	// The threshold is now the sensitivity.
-	public double getThreshold()
-	{
-		double threshold ;
+    public JPanel getPanel() {
+        return scalePanel;
+    }
 
-		try
-		{
-			threshold = Double.parseDouble( sensitivityTextField.getText() );
+    public void setThreshold(final double threshold) {
+        sensitivityTextField.setText("" + threshold);
+    }
+
+    // The threshold is now the sensitivity.
+    public double getThreshold() {
+        double threshold;
+
+        try {
+            threshold = Double.parseDouble(sensitivityTextField.getText());
 //			if ( errorLabel.getText().length() > 0 )
 //			{
 ////				errorLabel.setText("");
 //			}
-		}
-		catch ( NumberFormatException nfe )
-		{
-			threshold= 0;
+        }
+        catch (final NumberFormatException nfe) {
+            threshold = 0;
 //			errorLabel.setText("value not recognized");				
-		}
+        }
 
-		return threshold;
-	}
+        return threshold;
+    }
 
-	@Override
-	public void caretUpdate(CaretEvent e) {
+    @Override
+    public void caretUpdate(final CaretEvent e) {
 
-		getThreshold();	
-	}
+        getThreshold();
+    }
 
-	public boolean isEnabled() {
-		return enabledCheckBox.isSelected();
-	}
+    public boolean isEnabled() {
+        return enabledCheckBox.isSelected();
+    }
 
-	public static JPanel getHeaderPanel() {
+    public static JPanel getHeaderPanel() {
 
-		JPanel headerPanel =new JPanel();
+        final JPanel headerPanel = new JPanel();
 
-		headerPanel.setLayout( new BoxLayout(headerPanel , BoxLayout.PAGE_AXIS ) );
-		
-		JLabel scaleLabel = new JLabel("Scale enabled");
-		ComponentUtil.setFixedSize( scaleLabel , new Dimension( 80, 22) );
-		JLabel thresholdLabel = new JLabel("Sensitivity");
-		ComponentUtil.setFixedSize( thresholdLabel , new Dimension( 80, 22) );		
-		JLabel objectSizeLabel = new JLabel("Object size");
-		ComponentUtil.setFixedSize( objectSizeLabel , new Dimension( 80, 22) );
-		
-		headerPanel.add( GuiUtil.createLineBoxPanel( scaleLabel , thresholdLabel , objectSizeLabel , Box.createHorizontalGlue() ) );
-		
-		
-		return headerPanel;
-	}
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.PAGE_AXIS));
+
+        final JLabel scaleLabel = new JLabel("Scale enabled");
+        ComponentUtil.setFixedSize(scaleLabel, new Dimension(80, 22));
+        final JLabel thresholdLabel = new JLabel("Sensitivity");
+        ComponentUtil.setFixedSize(thresholdLabel, new Dimension(80, 22));
+        final JLabel objectSizeLabel = new JLabel("Object size");
+        ComponentUtil.setFixedSize(objectSizeLabel, new Dimension(80, 22));
+
+        headerPanel.add(GuiUtil.createLineBoxPanel(scaleLabel, thresholdLabel, objectSizeLabel, Box.createHorizontalGlue()));
+
+
+        return headerPanel;
+    }
 
 }

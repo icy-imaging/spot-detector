@@ -1,20 +1,25 @@
+/*
+ * Copyright (c) 2010-2023. Institut Pasteur.
+ *
+ * This file is part of Icy.
+ * Icy is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Icy is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Icy. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package plugins.fab.spotDetector.roi;
 
-import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.border.TitledBorder;
-
 import icy.gui.frame.progress.FailedAnnounceFrame;
-import icy.gui.main.MainAdapter;
-import icy.gui.main.MainEvent;
+import icy.gui.main.GlobalSequenceListener;
 import icy.gui.util.GuiUtil;
 import icy.main.Icy;
 import icy.roi.ROI;
@@ -26,16 +31,21 @@ import plugins.fab.spotDetector.DetectionSpot;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 import plugins.kernel.roi.roi2d.ROI2DRectangle;
 
-public class ROIFixedFromSequence extends ROIDetectionAbstract implements ActionListener
-{
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.HashMap;
 
+public class ROIFixedFromSequence extends ROIDetectionAbstract implements ActionListener {
     JLabel currentSequenceNameLabel = new JLabel();
     Color labelDefaultColor = null;
     JButton loadROIButton = new JButton("Click to load reference ROIs from focused Sequence.");
 
-    public ROIFixedFromSequence()
-    {
-        roiListStored = new ArrayList<ROI2D>();
+    public ROIFixedFromSequence() {
+        roiListStored = new ArrayList<>();
 
         getPanel().setLayout(new BoxLayout(getPanel(), BoxLayout.PAGE_AXIS));
         getPanel().setBorder(new TitledBorder("use same ROI for all sequences"));
@@ -56,39 +66,47 @@ public class ROIFixedFromSequence extends ROIDetectionAbstract implements Action
 
         loadROIButton.addActionListener(this);
 
-        Icy.getMainInterface().addListener(new MainAdapter()
-        {
+        Icy.getMainInterface().addGlobalSequenceListener(new GlobalSequenceListener() {
+            /**
+             * {@inheritDoc}
+             *
+             * @param sequence {@inheritDoc}
+             */
             @Override
-            public void sequenceFocused(MainEvent event)
-            {
+            public void sequenceOpened(final Sequence sequence) {
                 refreshCurrentSequenceLabel();
+            }
+
+            /**
+             * {@inheritDoc}
+             *
+             * @param sequence {@inheritDoc}
+             */
+            @Override
+            public void sequenceClosed(final Sequence sequence) {
+
             }
         });
     }
 
-    private void refreshCurrentSequenceLabel()
-    {
-        Sequence sequence = getFocusedSequence();
-        if (sequence == null)
-        {
+    private void refreshCurrentSequenceLabel() {
+        final Sequence sequence = getActiveSequence();
+        if (sequence == null) {
             currentSequenceNameLabel.setForeground(Color.red);
             currentSequenceNameLabel.setText("No sequence loaded");
         }
-        else
-        {
+        else {
             currentSequenceNameLabel.setForeground(labelDefaultColor);
             currentSequenceNameLabel.setText(sequence.getName());
         }
     }
 
     @Override
-    public void process(GlobalDetectionToken gdt)
-    {
-        ArrayList<ROI> roiArrayList;
+    public void process(final GlobalDetectionToken gdt) {
+        final ArrayList<ROI> roiArrayList;
 
         gdt.inputSequence.removeAllROI();
-        for (ROI roi : roiListStored)
-        {
+        for (final ROI roi : roiListStored) {
             gdt.inputSequence.addROI(roi);
         }
 
@@ -96,32 +114,24 @@ public class ROIFixedFromSequence extends ROIDetectionAbstract implements Action
 
         // remove detection if they are in a black ROI
 
-        ArrayList<DetectionSpot> cloneDetectionList = new ArrayList<DetectionSpot>(gdt.detectionResult);
-        for (ROI roi : roiArrayList)
-        {
+        final ArrayList<DetectionSpot> cloneDetectionList = new ArrayList<>(gdt.detectionResult);
+        for (final ROI roi : roiArrayList) {
             if (roi.getColor().getRed() == 0 && roi.getColor().getGreen() == 0 && roi.getColor().getBlue() == 0) // roi is black
             {
-                if (roi instanceof ROI2D)
-                {
-                    ROI2D roi2d = (ROI2D) roi;
+                if (roi instanceof ROI2D) {
+                    final ROI2D roi2d = (ROI2D) roi;
 
-                    for (DetectionSpot detectionSpot : cloneDetectionList)
-                    {
-                        if (roi2d.contains(detectionSpot.getMassCenter().x, detectionSpot.getMassCenter().y))
-                        {
+                    for (final DetectionSpot detectionSpot : cloneDetectionList) {
+                        if (roi2d.contains(detectionSpot.getMassCenter().x, detectionSpot.getMassCenter().y)) {
                             gdt.detectionResult.remove(detectionSpot);
                         }
                     }
                 }
-                else if (roi instanceof ROI3D)
-                {
-                    ROI3D roi3d = (ROI3D) roi;
+                else if (roi instanceof ROI3D) {
+                    final ROI3D roi3d = (ROI3D) roi;
 
-                    for (DetectionSpot detectionSpot : cloneDetectionList)
-                    {
-                        if (roi3d.contains(detectionSpot.getMassCenter().x, detectionSpot.getMassCenter().y,
-                                detectionSpot.getMassCenter().z))
-                        {
+                    for (final DetectionSpot detectionSpot : cloneDetectionList) {
+                        if (roi3d.contains(detectionSpot.getMassCenter().x, detectionSpot.getMassCenter().y, detectionSpot.getMassCenter().z)) {
                             gdt.detectionResult.remove(detectionSpot);
                         }
                     }
@@ -131,44 +141,36 @@ public class ROIFixedFromSequence extends ROIDetectionAbstract implements Action
 
         // create a hashMap with the detections binded to ROI
 
-        HashMap<ROI, ArrayList<DetectionSpot>> ROI2Detection = new HashMap<ROI, ArrayList<DetectionSpot>>();
+        final HashMap<ROI, ArrayList<DetectionSpot>> ROI2Detection = new HashMap<>();
 
         // create a fake ROI taking all the sequence if no existing ROI on sequence.
-        if (roiArrayList.size() == 0)
-        {
-            ROI2Detection.put(new ROI2DRectangle(gdt.inputSequence.getBounds2D()),
-                    (ArrayList<DetectionSpot>) gdt.detectionResult.clone());
+        if (roiArrayList.isEmpty()) {
+            @SuppressWarnings("unchecked") // clone method returns only Object
+            final ArrayList<DetectionSpot> value = (ArrayList<DetectionSpot>) gdt.detectionResult.clone();
+            ROI2Detection.put(new ROI2DRectangle(gdt.inputSequence.getBounds2D()), value);
         }
-        else
-        { // there is ROI is the sequence
+        else { // there is ROI is the sequence
 
             // setup hashMap
-            for (ROI roi : roiArrayList)
-                ROI2Detection.put(roi, new ArrayList<DetectionSpot>());
+            for (final ROI roi : roiArrayList)
+                ROI2Detection.put(roi, new ArrayList<>());
 
             // fill hashMap
-            for (ROI roi : roiArrayList)
-            {
-                if (roi instanceof ROI2D)
-                {
-                    ROI2D roi2d = (ROI2D) roi;
+            for (final ROI roi : roiArrayList) {
+                if (roi instanceof ROI2D) {
+                    final ROI2D roi2d = (ROI2D) roi;
 
-                    for (DetectionSpot spot : gdt.detectionResult)
-                    {
-                        if (roi2d.contains(spot.getMassCenter().x, spot.getMassCenter().y))
-                        {
+                    for (final DetectionSpot spot : gdt.detectionResult) {
+                        if (roi2d.contains(spot.getMassCenter().x, spot.getMassCenter().y)) {
                             ROI2Detection.get(roi).add(spot);
                         }
                     }
                 }
-                else if (roi instanceof ROI3D)
-                {
-                    ROI3D roi3d = (ROI3D) roi;
+                else if (roi instanceof ROI3D) {
+                    final ROI3D roi3d = (ROI3D) roi;
 
-                    for (DetectionSpot spot : gdt.detectionResult)
-                    {
-                        if (roi3d.contains(spot.getMassCenter().x, spot.getMassCenter().y, spot.getMassCenter().z))
-                        {
+                    for (final DetectionSpot spot : gdt.detectionResult) {
+                        if (roi3d.contains(spot.getMassCenter().x, spot.getMassCenter().y, spot.getMassCenter().z)) {
                             ROI2Detection.get(roi).add(spot);
                         }
                     }
@@ -180,50 +182,37 @@ public class ROIFixedFromSequence extends ROIDetectionAbstract implements Action
 
         gdt.detectionResult.clear();
         // Set<Entry<ROI2D, ArrayList<DetectionSpot>>> roiList = ROI2Detection.keySet();
-        for (ROI roi : ROI2Detection.keySet())
-        {
-            for (DetectionSpot ds : ROI2Detection.get(roi))
-            {
-                gdt.detectionResult.add(ds);
-            }
+        for (final ROI roi : ROI2Detection.keySet()) {
+            gdt.detectionResult.addAll(ROI2Detection.get(roi));
         }
 
         // set detection with ROI
 
         gdt.roi2detection = ROI2Detection;
-
     }
 
     ArrayList<ROI2D> roiListStored;
 
     @Override
-    public void actionPerformed(ActionEvent e)
-    {
-
-        Sequence sequence = Icy.getMainInterface().getFocusedSequence();
-        if (sequence == null)
-        {
+    public void actionPerformed(final ActionEvent e) {
+        final Sequence sequence = Icy.getMainInterface().getActiveSequence();
+        if (sequence == null) {
             new FailedAnnounceFrame("No sequence loaded");
             return;
         }
 
         roiListStored = sequence.getROI2Ds();
 
-        if (roiListStored.size() == 0)
-        {
+        if (roiListStored.isEmpty()) {
             new FailedAnnounceFrame("No ROI found in the focused sequence. (" + sequence.getName() + ")");
             return;
         }
 
-        loadROIButton.setText("" + roiListStored.size() + " ROI(s) Loaded.");
-
+        loadROIButton.setText(roiListStored.size() + " ROI(s) Loaded.");
     }
 
     @Override
-    public void saveXLS(WritableSheet page, GlobalDetectionToken gdt) throws InterruptedException
-    {
-
+    public void saveXLS(final WritableSheet page, final GlobalDetectionToken gdt) throws InterruptedException {
         ROI_XLS_Common_Saver.saveXLS(page, gdt, "ROI From Sequence module");
-
     }
 }

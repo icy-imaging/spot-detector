@@ -1,47 +1,42 @@
 /*
- * Copyright 2010, 2011 Institut Pasteur.
- * 
- * This file is part of ICY.
- * 
- * ICY is free software: you can redistribute it and/or modify
+ * Copyright (c) 2010-2023. Institut Pasteur.
+ *
+ * This file is part of Icy.
+ * Icy is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
- * ICY is distributed in the hope that it will be useful,
+ *
+ * Icy is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
- * along with ICY. If not, see <http://www.gnu.org/licenses/>.
+ * along with Icy. If not, see <https://www.gnu.org/licenses/>.
  */
+
 package plugins.fab.spotDetector.detector.wavelets.UDWT;
 
-import java.util.ArrayList;
-
 import plugins.fab.spotDetector.detector.UDWTScale;
+
+import java.util.ArrayList;
 
 /**
  * @author Nicolas Chenouard, Fabrice de Chaumont
  */
-public class B3SplineUDWT
-{
+public class B3SplineUDWT {
 
     /**
      * Compute the maximum feasible scale for a given 3D image size
      * for as scale i, the minimum size of the image is 5 +4*(2^(i-1)-1) along each direction
-     * 
-     * @param width
-     *        width of the image
-     * @param height
-     *        height of the image
-     * @param depth
-     *        depth of the image
+     *
+     * @param width  width of the image
+     * @param height height of the image
+     * @param depth  depth of the image
      * @return the maximum feasible scale for a given 3D image size
      */
-    public int computeMaximumScale(int width, int height, int depth)
-    {
+    public int computeMaximumScale(final int width, final int height, final int depth) {
         // compute the smallest size along the 3 dimensions
         int minSize = width;
         if (height < minSize)
@@ -59,15 +54,12 @@ public class B3SplineUDWT
     /**
      * Compute the maximum feasible scale for a given 2D image size
      * for as scale i, the minimum size of the image is 5 +4*(2^(i-1)-1) along each direction
-     * 
-     * @param width
-     *        width of the image
-     * @param height
-     *        height of the image
+     *
+     * @param width  width of the image
+     * @param height height of the image
      * @return the maximum feasible scale for a given 2D image size
      */
-    public int computeMaximumScale2D(int width, int height)
-    {
+    public int computeMaximumScale2D(final int width, final int height) {
         // compute the smallest size along the 2 dimensions
         int minSize = width;
         if (height < minSize)
@@ -81,70 +73,52 @@ public class B3SplineUDWT
     }
 
     /**
-     * @param width
-     *        width of the image
-     * @param height
-     *        height of the image
-     * @param numScales
-     *        number of scale
+     * @param width     width of the image
+     * @param height    height of the image
+     * @param numScales number of scale
      * @return <code>true</code> if the number of scale is ok for the specified image dimension
      */
-    public static boolean isNumberOfScaleOkForImage2D(int width, int height, int numScales)
-    {
-        int minSize = getMinSize(numScales); // 5+(int)(Math.pow(2, numScales-1))*4;//compute the minimum size for numScales scales
-        if (width < minSize || height < minSize)// image size is too small, return an exception
-        {
-            return false;
-        }
-        return true;
+    public static boolean isNumberOfScaleOkForImage2D(final int width, final int height, final int numScales) {
+        final int minSize = getMinSize(numScales); // 5+(int)(Math.pow(2, numScales-1))*4;//compute the minimum size for numScales scales
+        // image size is too small, return an exception
+        return width >= minSize && height >= minSize;
     }
 
     /**
-     * @param width
-     *        width of the image
-     * @param height
-     *        height of the image
-     * @param depth
-     *        depth of the image
-     * @param numScales
-     *        number of scale
+     * @param width     width of the image
+     * @param height    height of the image
+     * @param depth     depth of the image
+     * @param numScales number of scale
      * @return <code>true</code> if the number of scale is ok for the specified image dimension
      */
-    public static boolean isNumberOfScaleOkForImage3D(int width, int height, int depth, int numScales)
-    {
-        int minSize = getMinSize(numScales); // 5+(int)(Math.pow(2, numScales-1))*4;//compute the minimum size for numScales scales
-        if (width < minSize || height < minSize || depth < minSize)// image size is too small, return an exception
-        {
-            return false;
-        }
-        return true;
+    public static boolean isNumberOfScaleOkForImage3D(final int width, final int height, final int depth, final int numScales) {
+        final int minSize = getMinSize(numScales); // 5+(int)(Math.pow(2, numScales-1))*4;//compute the minimum size for numScales scales
+        // image size is too small, return an exception
+        return width >= minSize && height >= minSize && depth >= minSize;
     }
 
     /**
-     * @param numScales
-     *        number of scale level
+     * @param numScales number of scale level
      * @return the minimum size for the specified number of scale level
      */
-    public static int getMinSize(int numScales)
-    {
+    public static int getMinSize(final int numScales) {
         return 5 + (int) (Math.pow(2, numScales - 1)) * 4;
     }
 
     /**
      * Check that the 3D image dimensions complies with the number of chosen scales
-     * 
+     *
      * @param width
      * @param height
      * @param depth
      * @param numScales
      * @throws WaveletConfigException
      */
-    private void checkImageDimensions(int width, int height, int depth, int numScales) throws WaveletConfigException
-    {
-        int minSize = getMinSize(numScales); // 5+(int)(Math.pow(2, numScales-1))*4;//compute the minimum size for numScales scales
+    private void checkImageDimensions(final int width, final int height, final int depth, final int numScales) throws WaveletConfigException {
+        final int minSize = getMinSize(numScales); // 5+(int)(Math.pow(2, numScales-1))*4;//compute the minimum size for numScales scales
         if (width < minSize || height < minSize || depth < minSize)// image size is too small, return an exception
         {
-            String message = "Number of scales too large for the size of the image. These settings require: width>"
+            final String message = "Number of scales too large for the size of the image. These settings require: width>"
                     + (minSize - 1) + ", height >" + (minSize - 1) + " and depth >" + (minSize - 1);
             throw new WaveletConfigException(message);
         }
@@ -152,18 +126,17 @@ public class B3SplineUDWT
 
     /**
      * Check that the 2D image dimensions complies with the wavelet scale
-     * 
+     *
      * @param width
      * @param height
      * @param numScales
      * @throws WaveletConfigException
      */
-    private void checkImageDimensions2D(int width, int height, int numScales) throws WaveletConfigException
-    {
-        int minSize = 5 + (int) (Math.pow(2, numScales - 1) - 1) * 4;// compute the minimum size for numScales scales
+    private void checkImageDimensions2D(final int width, final int height, final int numScales) throws WaveletConfigException {
+        final int minSize = 5 + (int) (Math.pow(2, numScales - 1) - 1) * 4;// compute the minimum size for numScales scales
         if (width < minSize || height < minSize)// image size is too small, return an exception
         {
-            String message = "Number of scales too large for the size of the image. These settings require: width>"
+            final String message = "Number of scales too large for the size of the image. These settings require: width>"
                     + (minSize - 1) + ", height >" + (minSize - 1);
             throw new WaveletConfigException(message);
         }
@@ -171,37 +144,28 @@ public class B3SplineUDWT
 
     /**
      * Compute the wavelet coefficients from wavelet scales
-     * 
-     * @param scaleCoefficients
-     *        scale coefficients
-     * @param originalImage
-     *        original image data in float[][] ([XY][Z]) format
-     * @param numScales
-     *        number of scale level
-     * @param numPixels
-     *        number of pixels
-     * @param depth
-     *        depth of the image
+     *
+     * @param scaleCoefficients scale coefficients
+     * @param originalImage     original image data in float[][] ([XY][Z]) format
+     * @param numScales         number of scale level
+     * @param numPixels         number of pixels
+     * @param depth             depth of the image
      * @return nbScale + 1 , z , computed coefficients
      */
-    public float[][][] b3WaveletCoefficients3D(float[][][] scaleCoefficients, float[][] originalImage, int numScales,
-            int numPixels, int depth)
-    {
+    public float[][][] b3WaveletCoefficients3D(final float[][][] scaleCoefficients, final float[][] originalImage, final int numScales,
+                                               final int numPixels, final int depth) {
         // numScales wavelet images to store, + one image for the low pass residual
-        float[][][] waveletCoefficients = new float[numScales + 1][depth][];
+        final float[][][] waveletCoefficients = new float[numScales + 1][depth][];
 
         // compute wavelet coefficients as the difference between scale coefficients of subsequent scales
-        float[][] iterPrev = originalImage;// the finest scale coefficient is the difference between the original image and the first scale.
+        final float[][] iterPrev = originalImage;// the finest scale coefficient is the difference between the original image and the first scale.
         float[] iterCurrent;
         int j = 0;
-        while (j < numScales)
-        {
-            for (int z = 0; z < depth; z++)
-            {
+        while (j < numScales) {
+            for (int z = 0; z < depth; z++) {
                 iterCurrent = scaleCoefficients[j][z];
-                float[] wCoefficients = new float[numPixels];
-                for (int i = 0; i < numPixels; i++)
-                {
+                final float[] wCoefficients = new float[numPixels];
+                for (int i = 0; i < numPixels; i++) {
                     wCoefficients[i] = iterPrev[z][i] - iterCurrent[i];
                 }
                 waveletCoefficients[j][z] = wCoefficients;
@@ -210,8 +174,7 @@ public class B3SplineUDWT
             j++;
         }
         // residual low pass image is the last wavelet Scale
-        for (int z = 0; z < depth; z++)
-        {
+        for (int z = 0; z < depth; z++) {
             waveletCoefficients[numScales][z] = new float[numPixels];
             System.arraycopy(scaleCoefficients[numScales - 1][z], 0, waveletCoefficients[numScales][z], 0, numPixels);
         }
@@ -220,31 +183,21 @@ public class B3SplineUDWT
 
     /**
      * Reconstruct an image from the wavelet coefficients and a low pass residual image
-     * 
-     * @param inputCoefficients
-     *        input coefficients
-     * @param lowPassResidual
-     *        low pass residual in double[][] ([XY][Z]) format
-     * @param output
-     *        output receiver in double[][] ([XY][Z]) format
-     * @param numScales
-     *        number of scale level
-     * @param numPixels
-     *        number of pixels
-     * @param depth
-     *        depth of the image
+     *
+     * @param inputCoefficients input coefficients
+     * @param lowPassResidual   low pass residual in double[][] ([XY][Z]) format
+     * @param output            output receiver in double[][] ([XY][Z]) format
+     * @param numScales         number of scale level
+     * @param numPixels         number of pixels
+     * @param depth             depth of the image
      */
-    public void b3WaveletReconstruction3D(double[][][] inputCoefficients, double[][] lowPassResidual, double[][] output,
-            int numScales, int numPixels, int depth)
-    {
-        for (int z = 0; z < depth; z++)
-        {
-            for (int i = 0; i < numPixels; i++)
-            {
+    public void b3WaveletReconstruction3D(final double[][][] inputCoefficients, final double[][] lowPassResidual, final double[][] output,
+                                          final int numScales, final int numPixels, final int depth) {
+        for (int z = 0; z < depth; z++) {
+            for (int i = 0; i < numPixels; i++) {
                 {
                     double v = lowPassResidual[z][i];
-                    for (int j = 0; j < numScales; j++)
-                    {
+                    for (int j = 0; j < numScales; j++) {
                         v += inputCoefficients[j][z][i];
                     }
                     output[z][i] = v;
@@ -255,37 +208,25 @@ public class B3SplineUDWT
 
     /**
      * Multiply all the selected image coefficients
-     * 
-     * @param inputCoefficients
-     *        input coefficients
-     * @param output
-     *        output receiver in float[][] ([XY][Z]) format
-     * @param numScales
-     *        number of scale level
-     * @param numPixels
-     *        number of pixels
-     * @param depth
-     *        depth of the image
-     * @param UDWTScaleArrayList
-     *        scale level settings
+     *
+     * @param inputCoefficients  input coefficients
+     * @param output             output receiver in float[][] ([XY][Z]) format
+     * @param numScales          number of scale level
+     * @param numPixels          number of pixels
+     * @param depth              depth of the image
+     * @param UDWTScaleArrayList scale level settings
      */
-    public void b3SpotConstruction3D(float[][][] inputCoefficients, float[][] output, int numScales, int numPixels,
-            int depth, ArrayList<UDWTScale> UDWTScaleArrayList)
-    {
+    public void b3SpotConstruction3D(final float[][][] inputCoefficients, final float[][] output, final int numScales, final int numPixels,
+                                     final int depth, final ArrayList<UDWTScale> UDWTScaleArrayList) {
 
-        for (int z = 0; z < depth; z++)
-        {
-            for (int i = 0; i < numPixels; i++)
-            {
+        for (int z = 0; z < depth; z++) {
+            for (int i = 0; i < numPixels; i++) {
                 {
                     float v = 0;
                     boolean allNotNull = true;
-                    for (int j = 0; j < numScales; j++)
-                    {
-                        if (UDWTScaleArrayList.get(j).isEnabled())
-                        {
-                            if (inputCoefficients[j][z][i] == 0)
-                            {
+                    for (int j = 0; j < numScales; j++) {
+                        if (UDWTScaleArrayList.get(j).isEnabled()) {
+                            if (inputCoefficients[j][z][i] == 0) {
                                 allNotNull = false;
                             }
                             v += inputCoefficients[j][z][i];
@@ -294,12 +235,10 @@ public class B3SplineUDWT
                         // v+=inputCoefficients[j][z][i];
                     }
 
-                    if (allNotNull)
-                    {
+                    if (allNotNull) {
                         output[z][i] = v;
                     }
-                    else
-                    {
+                    else {
                         output[z][i] = 0;
                     }
                 }
@@ -310,34 +249,27 @@ public class B3SplineUDWT
 
     /**
      * Compute the wavelet coefficients from wavelet scales
-     * 
-     * @param scaleCoefficients
-     *        scale coefficients
-     * @param originalImage
-     *        original image data in float[] ([XY]) format
-     * @param numScales
-     *        number of scale level
-     * @param numPixels
-     *        number of pixels
+     *
+     * @param scaleCoefficients scale coefficients
+     * @param originalImage     original image data in float[] ([XY]) format
+     * @param numScales         number of scale level
+     * @param numPixels         number of pixels
      * @return float[scale][1D Coefficient Data]
      */
-    public float[][] b3WaveletCoefficients2D(float[][] scaleCoefficients, float[] originalImage, int numScales,
-            int numPixels)
-    {
+    public float[][] b3WaveletCoefficients2D(final float[][] scaleCoefficients, final float[] originalImage, final int numScales,
+                                             final int numPixels) {
         // numScales wavelet images to store, + one image for the low pass residual
-        float[][] waveletCoefficients = new float[numScales + 1][];
+        final float[][] waveletCoefficients = new float[numScales + 1][];
 
         // compute wavelet coefficients as the difference between scale coefficients of subsequent scales
         float[] iterPrev = originalImage;// the finest scale coefficient is the difference between the original image and the first scale.
         float[] iterCurrent;
 
         int j = 0;
-        while (j < numScales)
-        {
+        while (j < numScales) {
             iterCurrent = scaleCoefficients[j];
-            float[] wCoefficients = new float[numPixels];
-            for (int i = 0; i < numPixels; i++)
-            {
+            final float[] wCoefficients = new float[numPixels];
+            for (int i = 0; i < numPixels; i++) {
                 wCoefficients[i] = iterPrev[i] - iterCurrent[i];
             }
             waveletCoefficients[j] = wCoefficients;
@@ -352,26 +284,18 @@ public class B3SplineUDWT
 
     /**
      * Reconstruct an image from the wavelet coefficients and a low pass residual image
-     * 
-     * @param inputCoefficients
-     *        input coefficients
-     * @param lowPassResidual
-     *        low pass residual in float[] ([XY][Z]) format
-     * @param output
-     *        output receiver in float[] ([XY]) format
-     * @param numScales
-     *        number of scale level
-     * @param numVoxels
-     *        number of voxels
+     *
+     * @param inputCoefficients input coefficients
+     * @param lowPassResidual   low pass residual in float[] ([XY][Z]) format
+     * @param output            output receiver in float[] ([XY]) format
+     * @param numScales         number of scale level
+     * @param numVoxels         number of voxels
      */
-    public void b3WaveletReconstruction2D(float[][] inputCoefficients, float[] lowPassResidual, float[] output,
-            int numScales, int numVoxels)
-    {
-        for (int i = 0; i < numVoxels; i++)
-        {
+    public void b3WaveletReconstruction2D(final float[][] inputCoefficients, final float[] lowPassResidual, final float[] output,
+                                          final int numScales, final int numVoxels) {
+        for (int i = 0; i < numVoxels; i++) {
             float v = lowPassResidual[i];
-            for (int j = 0; j < numScales; j++)
-            {
+            for (int j = 0; j < numScales; j++) {
                 v += inputCoefficients[j][i];
             }
             output[i] = v;
@@ -380,43 +304,31 @@ public class B3SplineUDWT
 
     /**
      * Multiply all the selected image coefficients
-     * 
-     * @param inputCoefficients
-     *        input coefficients
-     * @param output
-     *        output receiver in float[] ([XY]) format
-     * @param numScales
-     *        number of scale level
-     * @param numVoxels
-     *        number of voxels
-     * @param UDWTScaleArrayList
-     *        scale level settings
+     *
+     * @param inputCoefficients  input coefficients
+     * @param output             output receiver in float[] ([XY]) format
+     * @param numScales          number of scale level
+     * @param numVoxels          number of voxels
+     * @param UDWTScaleArrayList scale level settings
      */
-    public void b3SpotConstruction2D(float[][] inputCoefficients, float[] output, int numScales, int numVoxels,
-            ArrayList<UDWTScale> UDWTScaleArrayList)
-    {
-        for (int i = 0; i < numVoxels; i++)
-        {
+    public void b3SpotConstruction2D(final float[][] inputCoefficients, final float[] output, final int numScales, final int numVoxels,
+                                     final ArrayList<UDWTScale> UDWTScaleArrayList) {
+        for (int i = 0; i < numVoxels; i++) {
             boolean allNotNull = true;
             float v = 0;
 
-            for (int j = 0; j < numScales; j++)
-            {
-                if (UDWTScaleArrayList.get(j).isEnabled())
-                {
-                    if (inputCoefficients[j][i] == 0)
-                    {
+            for (int j = 0; j < numScales; j++) {
+                if (UDWTScaleArrayList.get(j).isEnabled()) {
+                    if (inputCoefficients[j][i] == 0) {
                         allNotNull = false;
                     }
                     v += inputCoefficients[j][i];
                 }
             }
-            if (allNotNull)
-            {
+            if (allNotNull) {
                 output[i] = v;
             }
-            else
-            {
+            else {
                 output[i] = 0;
             }
         }
@@ -424,26 +336,20 @@ public class B3SplineUDWT
 
     /**
      * filter a 2D image with the B3 spline wavelet scale kernel in the x direction when using the a trous algorithm, and swap dimensions
-     * 
-     * @param arrayIn
-     *        input array
-     * @param arrayOut
-     *        output array
-     * @param width
-     *        width of the image
-     * @param height
-     *        height of the image
-     * @param stepS
-     *        internal step
+     *
+     * @param arrayIn  input array
+     * @param arrayOut output array
+     * @param width    width of the image
+     * @param height   height of the image
+     * @param stepS    internal step
      */
-    private void filterAndSwap2D(float[] arrayIn, float[] arrayOut, int width, int height, int stepS)
-    {
+    private void filterAndSwap2D(final float[] arrayIn, final float[] arrayOut, final int width, final int height, final int stepS) {
         // B3 spline wavelet configuration
         // the convolution kernel is {1/16, 1/4, 3/8, 1/4, 1/16}
         // with some zeros values inserted between the coefficients, depending on the scale
-        float w2 = ((float) 1) / 16;
-        float w1 = ((float) 1) / 4;
-        float w0 = ((float) 3) / 8;
+        final float w2 = ((float) 1) / 16;
+        final float w1 = ((float) 1) / 4;
+        final float w0 = ((float) 3) / 8;
 
         int w0idx;
         int w1idx1;
@@ -458,7 +364,7 @@ public class B3SplineUDWT
         for (int y = 0; y < height; y++)// loop over the second dimension
         {
             // manage the left border with mirror symmetry
-            arrayOutIter = 0 + y;// output pointer initialization, we swap dimensions at this point
+            arrayOutIter = y;// output pointer initialization, we swap dimensions at this point
             // w0idx = arrayIn + y*width;
             w1idx1 = w0idx + stepS - 1;
             w2idx1 = w1idx1 + stepS;
@@ -466,8 +372,7 @@ public class B3SplineUDWT
             w2idx2 = w1idx2 + stepS;
 
             cntX = 0;
-            while (cntX < stepS)
-            {
+            while (cntX < stepS) {
                 arrayOut[arrayOutIter] = w2 * ((arrayIn[w2idx1]) + (arrayIn[w2idx2]))
                         + w1 * ((arrayIn[w1idx1]) + (arrayIn[w1idx2])) + w0 * (arrayIn[w0idx]);
                 w1idx1--;
@@ -479,8 +384,7 @@ public class B3SplineUDWT
                 cntX++;
             }
             w1idx1++;
-            while (cntX < 2 * stepS)
-            {
+            while (cntX < 2 * stepS) {
                 arrayOut[arrayOutIter] = w2 * ((arrayIn[w2idx1]) + (arrayIn[w2idx2]))
                         + w1 * ((arrayIn[w1idx1]) + (arrayIn[w1idx2])) + w0 * (arrayIn[w0idx]);
                 w1idx1++;
@@ -493,8 +397,7 @@ public class B3SplineUDWT
             }
             w2idx1++;
             // filter the center area of the image (no border issue)
-            while (cntX < width - 2 * stepS)
-            {
+            while (cntX < width - 2 * stepS) {
                 arrayOut[arrayOutIter] = w2 * ((arrayIn[w2idx1]) + (arrayIn[w2idx2]))
                         + w1 * ((arrayIn[w1idx1]) + (arrayIn[w1idx2])) + w0 * (arrayIn[w0idx]);
                 w1idx1++;
@@ -507,8 +410,7 @@ public class B3SplineUDWT
             }
             w2idx2--;
             // manage the right border with mirror symmetry
-            while (cntX < width - stepS)
-            {
+            while (cntX < width - stepS) {
                 arrayOut[arrayOutIter] = w2 * ((arrayIn[w2idx1]) + (arrayIn[w2idx2]))
                         + w1 * ((arrayIn[w1idx1]) + (arrayIn[w1idx2])) + w0 * (arrayIn[w0idx]);
                 w1idx1++;
@@ -520,8 +422,7 @@ public class B3SplineUDWT
                 cntX++;
             }
             w1idx2--;
-            while (cntX < width)
-            {
+            while (cntX < width) {
                 arrayOut[arrayOutIter] = w2 * ((arrayIn[w2idx1]) + (arrayIn[w2idx2]))
                         + w1 * ((arrayIn[w1idx1]) + (arrayIn[w1idx2])) + w0 * (arrayIn[w0idx]);
                 w1idx1++;
@@ -537,41 +438,28 @@ public class B3SplineUDWT
 
     /**
      * Compute the wavelet scale images for a 2D image
-     * 
-     * @param dataIn
-     *        input data in float[XY] format
-     * @param width
-     *        width of the image
-     * @param height
-     *        height of the image
-     * @param numScales
-     *        number of scale level
+     *
+     * @param dataIn    input data in float[XY] format
+     * @param width     width of the image
+     * @param height    height of the image
+     * @param numScales number of scale level
      * @return the wavelet scale image
-     * @throws WaveletConfigException
-     *         if wavelet configuration is incorrect for the given image dimension
+     * @throws WaveletConfigException if wavelet configuration is incorrect for the given image dimension
      */
-    public float[][] b3WaveletScales2D(float[] dataIn, int width, int height, int numScales)
-            throws WaveletConfigException
-    {
+    public float[][] b3WaveletScales2D(final float[] dataIn, final int width, final int height, final int numScales)
+            throws WaveletConfigException {
         if (numScales < 1)// at least on scale is required
         {
             throw new WaveletConfigException(
                     "Invalid number of wavelet scales. Number of scales should be an integer >=1");
         }
         // check that image dimensions complies with the number of chosen scales
-        try
-        {
-            checkImageDimensions2D(width, height, numScales);
-        }
-        catch (WaveletConfigException e)
-        {
-            throw (e);
-        }
+        checkImageDimensions2D(width, height, numScales);
 
         int s;// scale
         int stepS;// step between non zero coefficients of the convolution kernel, depends on the scale
-        int wh = width * height;
-        float[][] resArray = new float[numScales][];// store wavelet scales in a new 2d double array
+        final int wh = width * height;
+        final float[][] resArray = new float[numScales][];// store wavelet scales in a new 2d double array
         float[] prevArray = dataIn; // array to filter, original data for the first scale
         float[] currentArray = new float[wh]; // filtered array
 
@@ -581,21 +469,19 @@ public class B3SplineUDWT
             // convolve along the x direction and swap dimensions
             filterAndSwap2D(prevArray, currentArray, width, height, stepS);
             // swap current and previous array pointers
-            if (s == 1)
-            {
+            if (s == 1) {
                 prevArray = currentArray;// the filtered array becomes the array to filter
                 currentArray = new float[wh];// allocate memory for the next dimension filtering (preserve original data)
             }
-            else
-            {
-                float[] tmp = currentArray;
+            else {
+                final float[] tmp = currentArray;
                 currentArray = prevArray;// the filtered array becomes the array to filter
                 prevArray = tmp;// the filtered array becomes the array to filter
             }
             // convolve along the y direction and swap dimensions
             filterAndSwap2D(prevArray, currentArray, height, width, stepS);// swap size of dimensions
             // swap current and previous array pointers
-            float[] tmp = currentArray;
+            final float[] tmp = currentArray;
             currentArray = prevArray;
             prevArray = tmp;
 
@@ -613,17 +499,16 @@ public class B3SplineUDWT
      * @param depth
      * @param stepS
      */
-    private void filterZdirection(float[][] arrayIn, float[][] arrayOut, int width, int height, int depth, int stepS)
-    {
+    private void filterZdirection(final float[][] arrayIn, final float[][] arrayOut, final int width, final int height, final int depth, final int stepS) {
         // B3 spline wavelet configuration
         // the convolution kernel is {1/16, 1/4, 3/8, 1/4, 1/16}
         // with some zeros values inserted between the coefficients, depending on the scale
-        float w2 = ((float) 1) / 16;
-        float w1 = ((float) 1) / 4;
-        float w0 = ((float) 3) / 8;
+        final float w2 = ((float) 1) / 16;
+        final float w1 = ((float) 1) / 4;
+        final float w0 = ((float) 3) / 8;
 
-        float[] bufferArrayIn = new float[depth]; // create a buffer for each 2D location i
-        float[] bufferArrayOut = new float[depth];// create an output buffer for each 2D location i
+        final float[] bufferArrayIn = new float[depth]; // create a buffer for each 2D location i
+        final float[] bufferArrayOut = new float[depth];// create an output buffer for each 2D location i
         for (int i = 0; i < width * height; i++) // loop in 2D over the pixels of the slices, can be done in a parallel manner
         {
             for (int z = 0; z < depth; z++)
@@ -637,8 +522,7 @@ public class B3SplineUDWT
             int w1idx2 = w0idx + stepS;
             int w2idx2 = w1idx2 + stepS;
 
-            while (cntZ < stepS)
-            {
+            while (cntZ < stepS) {
                 bufferArrayOut[arrayOutIter] = w2 * ((bufferArrayIn[w2idx1]) + (bufferArrayIn[w2idx2]))
                         + w1 * ((bufferArrayIn[w1idx1]) + (bufferArrayIn[w1idx2])) + w0 * (bufferArrayIn[w0idx]);
                 w1idx1--;
@@ -650,8 +534,7 @@ public class B3SplineUDWT
                 cntZ++;
             }
             w1idx1++;
-            while (cntZ < 2 * stepS)
-            {
+            while (cntZ < 2 * stepS) {
                 bufferArrayOut[arrayOutIter] = w2 * ((bufferArrayIn[w2idx1]) + (bufferArrayIn[w2idx2]))
                         + w1 * ((bufferArrayIn[w1idx1]) + (bufferArrayIn[w1idx2])) + w0 * (bufferArrayIn[w0idx]);
                 w1idx1++;
@@ -664,8 +547,7 @@ public class B3SplineUDWT
             }
             w2idx1++;
             // filter the center area of the image (no border issue)
-            while (cntZ < depth - 2 * stepS)
-            {
+            while (cntZ < depth - 2 * stepS) {
                 bufferArrayOut[arrayOutIter] = w2 * ((bufferArrayIn[w2idx1]) + (bufferArrayIn[w2idx2]))
                         + w1 * ((bufferArrayIn[w1idx1]) + (bufferArrayIn[w1idx2])) + w0 * (bufferArrayIn[w0idx]);
                 w1idx1++;
@@ -678,8 +560,7 @@ public class B3SplineUDWT
             }
             w2idx2--;
             // manage the right border with mirror symmetry
-            while (cntZ < depth - stepS)
-            {
+            while (cntZ < depth - stepS) {
                 bufferArrayOut[arrayOutIter] = w2 * ((bufferArrayIn[w2idx1]) + (bufferArrayIn[w2idx2]))
                         + w1 * ((bufferArrayIn[w1idx1]) + (bufferArrayIn[w1idx2])) + w0 * (bufferArrayIn[w0idx]);
                 w1idx1++;
@@ -691,8 +572,7 @@ public class B3SplineUDWT
                 cntZ++;
             }
             w1idx2--;
-            while (cntZ < depth)
-            {
+            while (cntZ < depth) {
                 bufferArrayOut[arrayOutIter] = w2 * ((bufferArrayIn[w2idx1]) + (bufferArrayIn[w2idx2]))
                         + w1 * ((bufferArrayIn[w1idx1]) + (bufferArrayIn[w1idx2])) + w0 * (bufferArrayIn[w0idx]);
                 w1idx1++;
@@ -711,54 +591,39 @@ public class B3SplineUDWT
 
     /**
      * Compute the scale images for a 3D image
-     * 
-     * @param dataIn
-     *        input data in float[XY][Z] format
-     * @param width
-     *        width of the image
-     * @param height
-     *        height of the image
-     * @param depth
-     *        depth of the image
-     * @param numScales
-     *        number of scale level
+     *
+     * @param dataIn    input data in float[XY][Z] format
+     * @param width     width of the image
+     * @param height    height of the image
+     * @param depth     depth of the image
+     * @param numScales number of scale level
      * @return the wavelet scale image
-     * @throws WaveletConfigException
-     *         if wavelet configuration is incorrect for the given image dimension
+     * @throws WaveletConfigException if wavelet configuration is incorrect for the given image dimension
      */
-    public float[][][] b3WaveletScales3D(float[][] dataIn, int width, int height, int depth, int numScales)
-            throws WaveletConfigException
-    {
+    public float[][][] b3WaveletScales3D(final float[][] dataIn, final int width, final int height, final int depth, final int numScales)
+            throws WaveletConfigException {
         if (numScales < 1)// at least on scale is required
         {
             throw new WaveletConfigException(
                     "Invalid number of wavelet scales. Number of scales should be an integer >=1");
         }
         // check that image dimensions complies with the number of chosen scales
-        try
-        {
-            checkImageDimensions(width, height, depth, numScales);
-        }
-        catch (WaveletConfigException e)
-        {
-            throw (e);
-        }
+        checkImageDimensions(width, height, depth, numScales);
 
         int s;// scale
         int stepS;// step between non zero coefficients of the convolution kernel, depends on the scale
-        int wh = width * height;
+        final int wh = width * height;
 
-        float[][][] resArray = new float[numScales][][];// store wavelet scales in a new 2d double array
+        final float[][][] resArray = new float[numScales][][];// store wavelet scales in a new 2d double array
         float[][] currentArray3D = dataIn;// array to be filtered
 
         for (s = 1; s <= numScales; s++)// for each scale
         {
-            float[][] prevArray = new float[depth][]; // array to filter in 2D, original data for the first scale
+            final float[][] prevArray = new float[depth][]; // array to filter in 2D, original data for the first scale
             stepS = (int) Math.pow(2, s - 1);// compute the step between non zero coefficients of the convolution kernel = 2^(scale-1)
 
             // process each slice of the stack, can be done in a parallel manner
-            for (int z = 0; z < depth; z++)
-            {
+            for (int z = 0; z < depth; z++) {
                 float[] currentArray;// filtered array
                 prevArray[z] = currentArray3D[z]; // array to filter, original data for the first scale
                 currentArray = new float[wh];// filtered array

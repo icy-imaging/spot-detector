@@ -1,55 +1,48 @@
 /*
- * Copyright 2010, 2011 Institut Pasteur.
- * 
- * This file is part of ICY.
- * 
- * ICY is free software: you can redistribute it and/or modify
+ * Copyright (c) 2010-2023. Institut Pasteur.
+ *
+ * This file is part of Icy.
+ * Icy is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
- * ICY is distributed in the hope that it will be useful,
+ *
+ * Icy is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
- * along with ICY. If not, see <http://www.gnu.org/licenses/>.
+ * along with Icy. If not, see <https://www.gnu.org/licenses/>.
  */
+
 package plugins.fab.spotDetector;
 
-import icy.gui.util.GuiUtil;
 import icy.plugin.PluginDescriptor;
 import icy.plugin.PluginLoader;
 import icy.plugin.abstract_.Plugin;
 import icy.roi.ROI;
-
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
-
-import javax.swing.JComboBox;
-import javax.swing.JPanel;
-
+import icy.system.IcyExceptionHandler;
 import plugins.fab.spotDetector.roi.ROIDetectionAbstract;
 
-public class ROIPanel extends GeneralSpotDetectionPanel implements ActionListener
-{
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 
-    private static final long serialVersionUID = -8556671504886645654L;
-
-    JComboBox inputChoice = new JComboBox();
+public class ROIPanel extends GeneralSpotDetectionPanel implements ActionListener {
+    JComboBox<PluginDescriptor> inputChoice = new JComboBox<>();
     JPanel pluginPanel = new JPanel();
     ROIDetectionAbstract roiDetection = null;
 
-    public ROIPanel(SpotDetector spotDetector)
-    {
+    public ROIPanel(final SpotDetector spotDetector) {
         super(spotDetector);
         setTitle("Region of Interest");
 
-        pluginPanel.setLayout( new BorderLayout() );
-        
+        pluginPanel.setLayout(new BorderLayout());
+
         add(inputChoice, BorderLayout.NORTH);
         add(pluginPanel, BorderLayout.CENTER);
 
@@ -61,22 +54,19 @@ public class ROIPanel extends GeneralSpotDetectionPanel implements ActionListene
     /**
      * Build the list of available processor founds in the plugin list
      */
-    private void buildInputChoice()
-    {
+    private void buildInputChoice() {
 
         inputChoice.removeAll();
 
-        for (final PluginDescriptor pluginDescriptor : PluginLoader.getPlugins())
-        {
+        for (final PluginDescriptor pluginDescriptor : PluginLoader.getPlugins()) {
             if (pluginDescriptor.isInstanceOf(ROIDetectionAbstract.class))
-            	if ( !pluginDescriptor.isAbstract() )
-            {
-                inputChoice.addItem(pluginDescriptor);
-                if ( pluginDescriptor.getClassName().contains( "FromSequence") ) // TODO: need little fix here
-                {
-                	inputChoice.setSelectedItem( pluginDescriptor );
+                if (!pluginDescriptor.isAbstract()) {
+                    inputChoice.addItem(pluginDescriptor);
+                    if (pluginDescriptor.getClassName().contains("FromSequence")) // TODO: need little fix here
+                    {
+                        inputChoice.setSelectedItem(pluginDescriptor);
+                    }
                 }
-            }
         }
 
     }
@@ -84,72 +74,44 @@ public class ROIPanel extends GeneralSpotDetectionPanel implements ActionListene
     /**
      * refresh interface and reinstanciate processor
      */
-    private void refreshInterface()
-    {
-        PluginDescriptor pluginDescriptor = (PluginDescriptor) inputChoice.getSelectedItem();
+    private void refreshInterface() {
+        final PluginDescriptor pluginDescriptor = (PluginDescriptor) inputChoice.getSelectedItem();
 
         pluginPanel.removeAll();
 
         Plugin plugin = null;
-        try
-        {
-            plugin = pluginDescriptor.getPluginClass().newInstance();
+        try {
+            assert pluginDescriptor != null;
+            plugin = pluginDescriptor.getPluginClass().getDeclaredConstructor().newInstance();
         }
-        catch (InstantiationException e1)
-        {
-            e1.printStackTrace();
-        }
-        catch (IllegalAccessException e1)
-        {
-            e1.printStackTrace();
+        catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e1) {
+            IcyExceptionHandler.showErrorMessage(e1, true);
         }
 
         roiDetection = (ROIDetectionAbstract) plugin;
 
-        pluginPanel.add( roiDetection.getPanel() , BorderLayout.CENTER );
+        assert roiDetection != null;
+        pluginPanel.add(roiDetection.getPanel(), BorderLayout.CENTER);
         pluginPanel.updateUI();
 
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
-    {
-
-        if (e.getSource() == inputChoice)
-        {
+    public void actionPerformed(final ActionEvent e) {
+        if (e.getSource() == inputChoice) {
             refreshInterface();
         }
-
     }
 
     /*
      * FIXME : peut etre pas la bonne facon de faire
      * comment obtenir le meme effet que le pattern special que l'on colle dans une image ?
      */
-    public ArrayList<ROI> getROIs()
-    {
-        // TODO Auto-generated method stub
+    public ArrayList<ROI> getROIs() {
         return null;
     }
 
-	public void process(GlobalDetectionToken gdt) {
-		
-		roiDetection.process( gdt );
-		
-		
-		
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-
+    public void process(final GlobalDetectionToken gdt) {
+        roiDetection.process(gdt);
+    }
 }

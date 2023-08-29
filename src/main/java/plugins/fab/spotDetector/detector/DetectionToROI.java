@@ -1,13 +1,26 @@
-package plugins.fab.spotDetector.detector;
+/*
+ * Copyright (c) 2010-2023. Institut Pasteur.
+ *
+ * This file is part of Icy.
+ * Icy is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Icy is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Icy. If not, see <https://www.gnu.org/licenses/>.
+ */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+package plugins.fab.spotDetector.detector;
 
 import icy.roi.BooleanMask3D;
 import icy.roi.ROI;
+import icy.system.IcyExceptionHandler;
 import icy.system.SystemUtil;
 import icy.system.thread.Processor;
 import icy.type.point.Point5D;
@@ -16,15 +29,18 @@ import plugins.fab.spotDetector.Point3D;
 import plugins.kernel.roi.roi2d.ROI2DArea;
 import plugins.kernel.roi.roi3d.ROI3DArea;
 
-public class DetectionToROI
-{
-    static class DetectionToROIConverter implements Callable<List<ROI>>
-    {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
+public class DetectionToROI {
+    static class DetectionToROIConverter implements Callable<List<ROI>> {
         final List<DetectionSpot> spots;
         final int baseIndex;
 
-        public DetectionToROIConverter(List<DetectionSpot> spots, int baseIndex)
-        {
+        public DetectionToROIConverter(final List<DetectionSpot> spots, final int baseIndex) {
             super();
 
             this.spots = spots;
@@ -32,45 +48,42 @@ public class DetectionToROI
         }
 
         @Override
-        public List<ROI> call() throws Exception
-        {
+        public List<ROI> call() {
             final List<ROI> result = new ArrayList<>(spots.size());
 
-            for (int s = 0; s < spots.size(); s++)
-            {
+            for (int s = 0; s < spots.size(); s++) {
                 final DetectionSpot spot = spots.get(s);
                 final int size = spot.points.size();
 
                 if (size == 0)
                     continue;
 
-                icy.type.point.Point3D[] p3ds = new icy.type.point.Point3D[size];
-                for (int p = 0; p < size; p++)
-                {
-                    Point3D pt = spot.points.get(p);
+                final icy.type.point.Point3D[] p3ds = new icy.type.point.Point3D[size];
+                for (int p = 0; p < size; p++) {
+                    final Point3D pt = spot.points.get(p);
                     p3ds[p] = new icy.type.point.Point3D.Double(pt.x, pt.y, pt.z);
                 }
 
-                BooleanMask3D bm3d = new BooleanMask3D(p3ds);
-                ROI3DArea roi3D = new ROI3DArea(bm3d);
-                ROI roi;
+                final BooleanMask3D bm3d = new BooleanMask3D(p3ds);
+                final ROI3DArea roi3D = new ROI3DArea(bm3d);
+                final ROI roi;
 
                 if (roi3D.getSizeZ() == 1) // check if the sizeZ is 1 and convert to ROI2D
                 {
-                    ROI2DArea roi2D = roi3D.getSlice((int) roi3D.getPosition().getZ());
+                    final ROI2DArea roi2D = roi3D.getSlice((int) roi3D.getPosition().getZ());
                     roi2D.setZ(roi3D.getPosition().z);
                     roi = roi2D;
                 }
                 else
                     roi = roi3D;
 
-                Point5D pos = roi.getPosition5D();
+                final Point5D pos = roi.getPosition5D();
                 // adjust T for ROI
                 pos.setT(spot.getT());
                 roi.setPosition5D(pos);
                 // set name
                 roi.setName("spot #" + (baseIndex + s));
-                
+
                 // add the ROI to result
                 result.add(roi);
             }
@@ -79,11 +92,9 @@ public class DetectionToROI
         }
     }
 
-    public static ArrayList<ROI> convertDetectionToROI(ArrayList<DetectionSpot> detectionList)
-            throws InterruptedException
-    {
-        Processor processor = new Processor(Math.max(256, detectionList.size()), SystemUtil.getNumberOfCPUs() * 2);
-        List<Future<List<ROI>>> tasks = new ArrayList<>();
+    public static ArrayList<ROI> convertDetectionToROI(final ArrayList<DetectionSpot> detectionList) {
+        final Processor processor = new Processor(Math.max(256, detectionList.size()), SystemUtil.getNumberOfCPUs() * 2);
+        final List<Future<List<ROI>>> tasks = new ArrayList<>();
         final int size = detectionList.size();
         final int groupsSize = 1000;
 
@@ -91,20 +102,16 @@ public class DetectionToROI
             tasks.add(processor
                     .submit(new DetectionToROIConverter(detectionList.subList(i, Math.min(i + groupsSize, size)), i)));
 
-        ArrayList<ROI> result = new ArrayList<ROI>();
-        for (Future<List<ROI>> task : tasks)
-        {
-            try
-            {
+        final ArrayList<ROI> result = new ArrayList<>();
+        for (final Future<List<ROI>> task : tasks) {
+            try {
                 result.addAll(task.get());
             }
-            catch (InterruptedException e)
-            {
+            catch (final InterruptedException e) {
                 break;
             }
-            catch (ExecutionException e)
-            {
-                e.getCause().printStackTrace();
+            catch (final ExecutionException e) {
+                IcyExceptionHandler.showErrorMessage(e.getCause(), true);
                 break;
             }
         }

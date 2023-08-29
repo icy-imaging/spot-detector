@@ -1,27 +1,26 @@
 /*
- * Copyright 2010, 2011 Institut Pasteur.
- * 
- * This file is part of ICY.
- * 
- * ICY is free software: you can redistribute it and/or modify
+ * Copyright (c) 2010-2023. Institut Pasteur.
+ *
+ * This file is part of Icy.
+ * Icy is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
- * ICY is distributed in the hope that it will be useful,
+ *
+ * Icy is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
- * along with ICY. If not, see <http://www.gnu.org/licenses/>.
+ * along with Icy. If not, see <https://www.gnu.org/licenses/>.
  */
+
 package plugins.fab.spotDetector;
 
 import java.util.ArrayList;
 
-public class DetectionSpot
-{
+public class DetectionSpot {
     /**
      * mass center of detection
      */
@@ -45,35 +44,31 @@ public class DetectionSpot
     public double maxIntensity;
 
     /**
-     * 
+     *
      */
-    public DetectionSpot()
-    {
-        points = new ArrayList<Point3D>();
+    public DetectionSpot() {
+        points = new ArrayList<>();
         massCenter = null;
     }
 
     /**
-     * 
+     *
      */
     int t;
 
     /**
      * Set time position
-     * 
-     * @param t
-     *        time position
+     *
+     * @param t time position
      */
-    public void setT(int t)
-    {
+    public void setT(final int t) {
         this.t = t;
     }
 
     /**
      * @return mass center position
      */
-    public Point3D getMassCenter()
-    {
+    public Point3D getMassCenter() {
 
         if (massCenter == null)
             computeMassCenter();
@@ -83,25 +78,22 @@ public class DetectionSpot
     /**
      * @return time position
      */
-    public int getT()
-    {
+    public int getT() {
         return t;
     }
 
     /**
      * Compute mass center position of the spot
      */
-    public void computeMassCenter()
-    {
+    public void computeMassCenter() {
         massCenter = new Point3D();
-        if (points.size() == 0)
+        if (points.isEmpty())
             return;
 
         double x = 0;
         double y = 0;
         double z = 0;
-        for (Point3D p : points)
-        {
+        for (final Point3D p : points) {
             x += p.x;
             y += p.y;
             z += p.z;
@@ -117,12 +109,10 @@ public class DetectionSpot
 
     /**
      * Set mass center position
-     * 
-     * @param point3d
-     *        position to set
+     *
+     * @param point3d position to set
      */
-    public void setMassCenter(Point3D point3d)
-    {
+    public void setMassCenter(final Point3D point3d) {
         massCenter.x = point3d.x;
         massCenter.y = point3d.y;
         massCenter.z = point3d.z;

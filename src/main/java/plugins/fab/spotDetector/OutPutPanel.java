@@ -1,45 +1,22 @@
 /*
- * Copyright 2010, 2011 Institut Pasteur.
- * 
- * This file is part of ICY.
- * 
- * ICY is free software: you can redistribute it and/or modify
+ * Copyright (c) 2010-2023. Institut Pasteur.
+ *
+ * This file is part of Icy.
+ * Icy is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
- * ICY is distributed in the hope that it will be useful,
+ *
+ * Icy is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
- * along with ICY. If not, see <http://www.gnu.org/licenses/>.
+ * along with Icy. If not, see <https://www.gnu.org/licenses/>.
  */
+
 package plugins.fab.spotDetector;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JFileChooser;
-import javax.swing.JPanel;
-import javax.swing.JTextArea;
-import javax.swing.border.TitledBorder;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import icy.canvas.Canvas2D;
 import icy.file.FileUtil;
@@ -51,9 +28,11 @@ import icy.image.IcyBufferedImage;
 import icy.main.Icy;
 import icy.roi.ROI;
 import icy.sequence.Sequence;
+import icy.sequence.SequenceUtil;
 import icy.swimmingPool.SwimmingObject;
+import icy.system.IcyExceptionHandler;
 import icy.system.thread.ThreadUtil;
-import icy.type.TypeUtil;
+import icy.type.DataType;
 import icy.util.XLSUtil;
 import icy.util.XMLUtil;
 import jxl.Workbook;
@@ -62,16 +41,27 @@ import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
 import loci.formats.FormatException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import plugins.fab.spotDetector.detector.DetectionToROI;
 import plugins.kernel.roi.descriptor.measure.ROIInteriorDescriptor;
 import plugins.nchenouard.spot.DetectionResult;
 import plugins.nchenouard.spot.Spot;
 
-public class OutPutPanel extends GeneralSpotDetectionPanel
-{
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
 
-    private static final long serialVersionUID = -2273173314961844726L;
-
+public class OutPutPanel extends GeneralSpotDetectionPanel {
     JCheckBox exportXLSCheckBox;
     JCheckBox exportXMLCheckBox;
     JCheckBox exportOriginalImageWithROIAndDetection;
@@ -82,8 +72,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
     XLSPanel XLSPanel;
     XMLPanel XMLPanel;
 
-    public OutPutPanel(SpotDetector spotDetector)
-    {
+    public OutPutPanel(final SpotDetector spotDetector) {
         super(spotDetector);
         setTitle("Output");
 
@@ -118,25 +107,20 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
 
     }
 
-    class XMLPanel extends JPanel implements ActionListener
-    {
-        private static final long serialVersionUID = 1237537075380067160L;
-
+    static class XMLPanel extends JPanel implements ActionListener {
         JPanel detailPanel = new JPanel();
 
         JButton specifyFile = new JButton("no file selected");
-        JTextArea appendLabel = new JTextArea(
-                "The XML data will be appended to this file. If the file does not exist, it will be created.");
+        JTextArea appendLabel = new JTextArea("The XML data will be appended to this file. If the file does not exist, it will be created.");
 
         File XMLAppendfile = null;
         JCheckBox enableXMLCheckBox = new JCheckBox("Enable XML export", false);
 
-        public XMLPanel()
-        {
+        public XMLPanel() {
             this.setBorder(new TitledBorder("XML output settings:"));
             this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
-            JPanel specificFilePanel = new JPanel();
+            final JPanel specificFilePanel = new JPanel();
             specificFilePanel.add(GuiUtil.createLineBoxPanel(enableXMLCheckBox, Box.createHorizontalGlue()));
             specificFilePanel.setLayout(new BoxLayout(specificFilePanel, BoxLayout.PAGE_AXIS));
             enableXMLCheckBox.addActionListener(this);
@@ -153,44 +137,37 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
             refreshEnableStatePanel();
         }
 
-        public boolean isSpecificExportFileToXLSSelected()
-        {
+        public boolean isSpecificExportFileToXLSSelected() {
             return enableXMLCheckBox.isSelected();
         }
 
-        public File getSelectedFile()
-        {
+        public File getSelectedFile() {
             return XMLAppendfile;
         }
 
-        public boolean isExportToXMLSelected()
-        {
+        public boolean isExportToXMLSelected() {
             return enableXMLCheckBox.isSelected();
         }
 
         /**
          * refresh enable / not enable components
          */
-        void refreshEnableStatePanel()
-        {
+        void refreshEnableStatePanel() {
             appendLabel.setEnabled(enableXMLCheckBox.isSelected());
             specifyFile.setEnabled(enableXMLCheckBox.isSelected());
         }
 
         @Override
-        public void actionPerformed(ActionEvent e)
-        {
+        public void actionPerformed(final ActionEvent e) {
 
             refreshEnableStatePanel();
 
-            if (e.getSource() == specifyFile)
-            {
+            if (e.getSource() == specifyFile) {
 
-                JFileChooser fileChooser = new JFileChooser();
+                final JFileChooser fileChooser = new JFileChooser();
                 fileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
-                int returnValue = fileChooser.showDialog(null, "XML Export");
-                if (returnValue == JFileChooser.APPROVE_OPTION)
-                {
+                final int returnValue = fileChooser.showDialog(null, "XML Export");
+                if (returnValue == JFileChooser.APPROVE_OPTION) {
                     XMLAppendfile = fileChooser.getSelectedFile();
                     specifyFile.setText(XMLAppendfile.getAbsolutePath());
 
@@ -203,32 +180,24 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
 
     }
 
-    class XLSPanel extends JPanel implements ActionListener
-    {
-        private static final long serialVersionUID = 1237537075380067160L;
-
+    static class XLSPanel extends JPanel implements ActionListener {
         JPanel detailPanel = new JPanel();
 
-        JTextArea automaticLabel = new JTextArea(
-                "The XLS file will be saved in the 'save' folder of the original image. The file name will be 'originalfilename.xls'. If an XLS file already exists, it will be replaced.");
+        JTextArea automaticLabel = new JTextArea("The XLS file will be saved in the 'save' folder of the original image. The file name will be 'originalfilename.xls'. If an XLS file already exists, it will be replaced.");
         JButton specifyFile = new JButton("no file selected");
-        JTextArea appendLabel = new JTextArea(
-                "The XLS data will be appended to this file. If the file does not exist, it will be created. Each image will consist in one page in the XLS file. If it becomes slow consider using XML. Watch how to use it on the online documentation.");
+        JTextArea appendLabel = new JTextArea("The XLS data will be appended to this file. If the file does not exist, it will be created. Each image will consist in one page in the XLS file. If it becomes slow consider using XML. Watch how to use it on the online documentation.");
 
         File XLSAppendfile = null;
         JCheckBox automaticAppendCheckBox = new JCheckBox("Append data to existing files.", false);
         JCheckBox enableAutomaticCheckBox = new JCheckBox("Enable Automatic", false);
         JCheckBox enableSpecificFileCheckBox = new JCheckBox("Enable Specific file", false);
-        JCheckBox exportImageInExcelFileFor2D = new JCheckBox(
-                "Export Image (ROI and detections) in the XLS file (only for 2D images)", false);
+        JCheckBox exportImageInExcelFileFor2D = new JCheckBox("Export Image (ROI and detections) in the XLS file (only for 2D images)", false);
 
-        public XLSPanel()
-        {
+        public XLSPanel() {
             this.setBorder(new TitledBorder("Excel output settings:"));
             this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
-            new GuiUtil();
-            JPanel automaticPanel = new JPanel();
+            final JPanel automaticPanel = new JPanel();
             automaticPanel.setBorder(new TitledBorder("Automatic XLS file naming"));
             automaticPanel.setLayout(new BoxLayout(automaticPanel, BoxLayout.PAGE_AXIS));
             automaticPanel.add(GuiUtil.createLineBoxPanel(enableAutomaticCheckBox, Box.createHorizontalGlue()));
@@ -240,7 +209,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
             automaticPanel.add(GuiUtil.createLineBoxPanel(automaticAppendCheckBox, Box.createHorizontalGlue()));
             this.add(automaticPanel);
 
-            JPanel specificFilePanel = new JPanel();
+            final JPanel specificFilePanel = new JPanel();
             specificFilePanel.setBorder(new TitledBorder("Append all data to a single file"));
             specificFilePanel.add(GuiUtil.createLineBoxPanel(enableSpecificFileCheckBox, Box.createHorizontalGlue()));
             specificFilePanel.setLayout(new BoxLayout(specificFilePanel, BoxLayout.PAGE_AXIS));
@@ -255,39 +224,32 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
             // this.add( exportImageInExcelFileFor2D );
 
             refreshEnableStatePanel();
-
         }
 
-        public boolean exportImageInXLSFor2D()
-        {
+        public boolean exportImageInXLSFor2D() {
             return exportImageInExcelFileFor2D.isSelected();
         }
 
-        public boolean isSpecificExportFileToXLSSelected()
-        {
+        public boolean isSpecificExportFileToXLSSelected() {
             return enableSpecificFileCheckBox.isSelected();
         }
 
-        public File getSelectedSpecificFile()
-        {
+        public File getSelectedSpecificFile() {
             return XLSAppendfile;
         }
 
-        public boolean isAutomaticExportToXLSSelected()
-        {
+        public boolean isAutomaticExportToXLSSelected() {
             return enableAutomaticCheckBox.isSelected();
         }
 
-        public boolean isAutomaticExportToXLSAppendSelected()
-        {
+        public boolean isAutomaticExportToXLSAppendSelected() {
             return automaticAppendCheckBox.isSelected();
         }
 
         /**
          * refresh enable / not enable components
          */
-        void refreshEnableStatePanel()
-        {
+        void refreshEnableStatePanel() {
             automaticLabel.setEnabled(enableAutomaticCheckBox.isSelected());
             automaticAppendCheckBox.setEnabled(enableAutomaticCheckBox.isSelected());
             appendLabel.setEnabled(enableSpecificFileCheckBox.isSelected());
@@ -295,49 +257,36 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
         }
 
         @Override
-        public void actionPerformed(ActionEvent e)
-        {
-
+        public void actionPerformed(final ActionEvent e) {
             refreshEnableStatePanel();
 
-            if (e.getSource() == specifyFile)
-            {
-
-                JFileChooser fileChooser = new JFileChooser();
+            if (e.getSource() == specifyFile) {
+                final JFileChooser fileChooser = new JFileChooser();
                 fileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
-                int returnValue = fileChooser.showDialog(null, "XLS Export");
-                if (returnValue == JFileChooser.APPROVE_OPTION)
-                {
+                final int returnValue = fileChooser.showDialog(null, "XLS Export");
+                if (returnValue == JFileChooser.APPROVE_OPTION) {
                     XLSAppendfile = fileChooser.getSelectedFile();
                     specifyFile.setText(XLSAppendfile.getAbsolutePath());
                 }
-
             }
-
         }
-
     }
 
-    ArrayList<String> getTagList(Sequence sequence, ROI roi)
-    {
-        ArrayList<String> tagList = new ArrayList<String>();
+    ArrayList<String> getTagList(final Sequence sequence, final ROI roi) {
+        final ArrayList<String> tagList = new ArrayList<>();
 
-        Node tagNode = sequence.getNode("tags");
-        if (tagNode != null)
-        {
-            ArrayList<Element> roiElementList = XMLUtil.getSubElements(tagNode);
-            for (Element roiElement1 : roiElementList)
-            {
-                int roiId = XMLUtil.getAttributeIntValue(roiElement1, "ROI_ID", -1);
+        final Node tagNode = sequence.getNode("tags");
+        if (tagNode != null) {
+            final ArrayList<Element> roiElementList = XMLUtil.getElements(tagNode);
+            for (final Element roiElement1 : roiElementList) {
+                final int roiId = XMLUtil.getAttributeIntValue(roiElement1, "ROI_ID", -1);
 
-                if (roiId == roi.getId())
-                {
+                if (roiId == roi.getId()) {
 
-                    ArrayList<Element> roiTagList = XMLUtil.getSubElements(roiElement1);
+                    final ArrayList<Element> roiTagList = XMLUtil.getElements(roiElement1);
 
-                    for (Element tag : roiTagList)
-                    {
-                        String name = XMLUtil.getAttributeValue(tag, "name", "no name");
+                    for (final Element tag : roiTagList) {
+                        final String name = XMLUtil.getAttributeValue(tag, "name", "no name");
 
                         tagList.add(name);
                     }
@@ -345,23 +294,18 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
             }
         }
         return tagList;
-
     }
 
-    public void process(final GlobalDetectionToken gdt) throws InterruptedException
-    {
-
-        if (XMLPanel.isExportToXMLSelected())
-        {
+    public void process(final GlobalDetectionToken gdt) throws InterruptedException {
+        if (XMLPanel.isExportToXMLSelected()) {
             // Export in XML
 
             // String userDir = System.getProperty("user.home");
             // String XMLFileName = userDir + FileUtil.separator + "detection xml export.xml";
 
-            File XMLFile = XMLPanel.getSelectedFile();
+            final File XMLFile = XMLPanel.getSelectedFile();
 
-            if (XMLFile == null)
-            {
+            if (XMLFile == null) {
                 new FailedAnnounceFrame("XML output is enabled, but no output file was specified !");
                 return;
             }
@@ -372,23 +316,21 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
 
             // System.out.println( "Document null : " + (document==null) );
 
-            if (document == null)
-            {
+            if (document == null) {
                 document = XMLUtil.createDocument(true);
             }
 
-            HashMap<ROI, ArrayList<DetectionSpot>> ROI2Detection = gdt.roi2detection;
+            final HashMap<ROI, ArrayList<DetectionSpot>> ROI2Detection = gdt.roi2detection;
             // ArrayList<ROI> test = gdt.inputSequence.getROIs();
 
             // System.out.println("roi list size: " + ROI2Detection.keySet().size() );
             // ArrayList<DetectionSpot> detectionResult = gdt.detectionResult;
 
-            for (ROI roi : ROI2Detection.keySet())
-            {
+            for (final ROI roi : ROI2Detection.keySet()) {
                 // System.out.println("processing roi " + roi.getName() );
-                ArrayList<DetectionSpot> detection = gdt.roi2detection.get(roi);
+                final ArrayList<DetectionSpot> detection = gdt.roi2detection.get(roi);
 
-                Element roiElement = XMLUtil.addElement(document.getDocumentElement(), "ROI");
+                final Element roiElement = XMLUtil.addElement(document.getDocumentElement(), "ROI");
                 XMLUtil.setAttributeValue(roiElement, "name", roi.getName());
                 XMLUtil.setAttributeIntValue(roiElement, "nb", detection.size());
                 XMLUtil.setAttributeIntValue(roiElement, "surface", computeROISurface(roi));
@@ -398,11 +340,10 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
                         FileUtil.getFileName(gdt.inputSequence.getFilename(), true));
                 XMLUtil.setAttributeValue(roiElement, "process_date", new Date().toString());
 
-                ArrayList<String> tagList = getTagList(gdt.inputSequence, roi);
+                final ArrayList<String> tagList = getTagList(gdt.inputSequence, roi);
                 // Element tagListElement = XMLUtil.addElement( roiElement , "tag_list" );
 
-                for (String tagName : tagList)
-                {
+                for (final String tagName : tagList) {
                     XMLUtil.setAttributeValue(roiElement, "tag" + (tagList.indexOf(tagName) + 1), tagName);
                 }
 
@@ -422,13 +363,10 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
 
         // create a save folder
 
-        gdt.inputSequence.getFilename();
-
-        File XLSFile = null;
+        final File XLSFile;
 
         String fileName = gdt.inputSequence.getFilename();
-        if (fileName == null)
-        {
+        if (fileName == null) {
             fileName = System.getProperty("user.home");
             fileName += FileUtil.separator + "icy";
             FileUtil.createDir(new File(fileName));
@@ -436,10 +374,10 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
             // System.out.println( "FileName: " + fileName );
         }
 
-        File inputSequenceFile = new File(fileName);
+        final File inputSequenceFile = new File(fileName);
         String file = inputSequenceFile.getAbsolutePath();
         file = file.substring(0, file.length() - inputSequenceFile.getName().length());
-        String folder = file;
+        final String folder = file;
         final File dirResult = new File(folder, FileUtil.separator + "save");
         // if(!dirResult.exists()) dirResult.mkdir();
 
@@ -452,170 +390,125 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
             final File withnessImageFile = new File(folder + FileUtil.separator + "save" + FileUtil.separator
                     + inputSequenceFile.getName() + ".roi.detection.tif");
 
-            ThreadUtil.invokeNow(new Runnable()
-            {
+            ThreadUtil.invokeNow(() -> {
+                if (exportOriginalImageWithROIAndDetection.isSelected()) {
+                    final Viewer viewer = new Viewer(gdt.inputSequence, false);
+                    viewer.setCanvas(Canvas2D.class.getName());
+                    final Canvas2D canvas = (Canvas2D) viewer.getCanvas();
 
-                @Override
-                public void run()
-                {
+                    viewer.setSize(200, 200);
+                    try {
+                        final BufferedImage renderedImage = canvas.getRenderedImage(0, 0, -1, false);
 
-                    if (exportOriginalImageWithROIAndDetection.isSelected())
-                    {
-                        Viewer viewer = new Viewer(gdt.inputSequence, false);
-                        viewer.setCanvas(new Canvas2D(viewer));
-                        Canvas2D canvas = (Canvas2D) viewer.getCanvas();
-
-                        viewer.setSize(200, 200);
-                        try
-                        {
-                            BufferedImage renderedImage = canvas.getRenderedImage(0, 0, -1, false);
-
-                            if (!dirResult.exists())
-                                dirResult.mkdir();
-                            Saver.saveImage(IcyBufferedImage.createFrom(renderedImage), withnessImageFile, true);
-                        }
-                        catch (InterruptedException e)
-                        {
-                            e.printStackTrace();
-                        }
-                        catch (FormatException e)
-                        {
-                            e.printStackTrace();
-                        }
-                        catch (IOException e)
-                        {
-                            e.printStackTrace();
-                        }
-
-                        viewer.close();
+                        if (!dirResult.exists())
+                            dirResult.mkdir();
+                        Saver.saveImage(IcyBufferedImage.createFrom(renderedImage), withnessImageFile, true);
                     }
+                    catch (final InterruptedException | FormatException | IOException e) {
+                        IcyExceptionHandler.showErrorMessage(e, true);
+                    }
+
+                    viewer.close();
                 }
             });
         }
 
         // save image with final detection
-        if (exportBinaryImage.isSelected())
-        {
+        if (exportBinaryImage.isSelected()) {
             final File binaryImageFile = new File(folder + FileUtil.separator + "save" + FileUtil.separator
                     + inputSequenceFile.getName() + ".roi.binary.tif");
 
             // System.out.println("debug: into export binary");
 
-            ThreadUtil.invokeNow(new Runnable()
-            {
+            ThreadUtil.invokeNow(() -> {
+                try {
 
-                @Override
-                public void run()
-                {
+                    // System.out.println("debug: into export binary run");
 
-                    try
-                    {
+                    final Sequence ch = SequenceUtil.extractChannel(gdt.inputSequence, 0);
+                    final Sequence sequenceBinaryDetection = SequenceUtil.convertToType(ch, DataType.UBYTE, false);
 
-                        // System.out.println("debug: into export binary run");
+                    sequenceBinaryDetection.beginUpdate();
 
-                        Sequence sequenceBinaryDetection = gdt.inputSequence.extractChannel(0)
-                                .convertToType(TypeUtil.TYPE_BYTE, false, false);
+                    for (final IcyBufferedImage image : sequenceBinaryDetection.getAllImage()) {
+                        final byte[] b = image.getDataXYAsByte(0);
+                        Arrays.fill(b, (byte) 0);
+                    }
 
-                        sequenceBinaryDetection.beginUpdate();
+                    // System.out.println("debug: into export binary run 1");
 
-                        for (IcyBufferedImage image : sequenceBinaryDetection.getAllImage())
-                        {
-                            byte[] b = image.getDataXYAsByte(0);
-                            Arrays.fill(b, (byte) 0);
+                    for (final DetectionSpot detection : gdt.detectionResult) {
+                        // System.out.println( gdt.detectionResult.indexOf( detection ) + " / " + gdt.detectionResult.size() + " p#: " +
+                        // detection.points.size() + " " + sequenceBinaryDetection.isUpdating() );
+
+                        final int t = detection.t;
+
+                        for (final Point3D p : detection.points) {
+                            // sequenceBinaryDetection.getImage( t , (int)p.z ).setDataAsByte( (int)p.x , (int)p.y, 0, (byte)255 );
+                            sequenceBinaryDetection.getDataXYAsByte(t, (int) p.z,
+                                    0)[sequenceBinaryDetection.getWidth() * (int) p.y + (int) p.x] = (byte) 255;
                         }
-
-                        // System.out.println("debug: into export binary run 1");
-
-                        for (DetectionSpot detection : gdt.detectionResult)
-                        {
-                            // System.out.println( gdt.detectionResult.indexOf( detection ) + " / " + gdt.detectionResult.size() + " p#: " +
-                            // detection.points.size() + " " + sequenceBinaryDetection.isUpdating() );
-
-                            int t = detection.t;
-
-                            for (Point3D p : detection.points)
-                            {
-                                // sequenceBinaryDetection.getImage( t , (int)p.z ).setDataAsByte( (int)p.x , (int)p.y, 0, (byte)255 );
-                                sequenceBinaryDetection.getDataXYAsByte(t, (int) p.z,
-                                        0)[sequenceBinaryDetection.getWidth() * (int) p.y + (int) p.x] = (byte) 255;
-                            }
-
-                        }
-
-                        // System.out.println("debug: into export binary run 2");
-                        sequenceBinaryDetection.endUpdate();
-
-                        // System.out.println("debug: into export binary run 3");
-
-                        if (!dirResult.exists())
-                            dirResult.mkdir();
-                        Saver.save(sequenceBinaryDetection, binaryImageFile, false, true);
 
                     }
-                    catch (Exception e)
-                    {
-                        e.printStackTrace();
-                        try
-                        {
-                            throw e;
-                        }
-                        catch (Exception e1)
-                        {
-                            e1.printStackTrace();
-                        }
+
+                    // System.out.println("debug: into export binary run 2");
+                    sequenceBinaryDetection.endUpdate();
+
+                    // System.out.println("debug: into export binary run 3");
+
+                    if (!dirResult.exists())
+                        dirResult.mkdir();
+                    Saver.save(sequenceBinaryDetection, binaryImageFile, false, true);
+
+                }
+                catch (final Exception e) {
+                    IcyExceptionHandler.showErrorMessage(e, true);
+                    try {
+                        throw e;
+                    }
+                    catch (final Exception e1) {
+                        IcyExceptionHandler.showErrorMessage(e1, true);
                     }
                 }
             });
 
         }
 
-        XLSFile = new File(
-                folder + FileUtil.separator + "save" + FileUtil.separator + inputSequenceFile.getName() + ".xls");
+        XLSFile = new File(folder + FileUtil.separator + "save" + FileUtil.separator + inputSequenceFile.getName() + ".xls");
 
         // WritableImage writableRenderedImage = new
 
-        if (XLSPanel.isAutomaticExportToXLSSelected())
-        {
+        if (XLSPanel.isAutomaticExportToXLSSelected()) {
             if (!dirResult.exists())
                 dirResult.mkdir();
             saveToXLS(XLSFile, gdt, XLSPanel.isAutomaticExportToXLSAppendSelected());
         }
 
-        if (XLSPanel.isSpecificExportFileToXLSSelected())
-        {
-            File xlsAppendFile = XLSPanel.getSelectedSpecificFile();
-            if (xlsAppendFile != null)
-            {
+        if (XLSPanel.isSpecificExportFileToXLSSelected()) {
+            final File xlsAppendFile = XLSPanel.getSelectedSpecificFile();
+            if (xlsAppendFile != null) {
                 if (!dirResult.exists())
                     dirResult.mkdir();
                 saveToXLS(xlsAppendFile, gdt, true);
             }
         }
 
-        if (exportSwimmingPoolCheckBox.isSelected())
-        {
-            try
-            {
-                DetectionResult detectionResultConverted = convertDetectionToDetectionResult(gdt.detectionResult,
-                        gdt.inputSequence);
-                SwimmingObject swimmingObject = new SwimmingObject(detectionResultConverted,
+        if (exportSwimmingPoolCheckBox.isSelected()) {
+            try {
+                final DetectionResult detectionResultConverted = convertDetectionToDetectionResult(gdt.detectionResult, gdt.inputSequence);
+                final SwimmingObject swimmingObject = new SwimmingObject(detectionResultConverted,
                         "detections of " + gdt.inputSequence.getName()); // inputSequenceFile.getName()
                 Icy.getMainInterface().getSwimmingPool().add(swimmingObject);
             }
-            catch (Exception e)
-            {
-                System.out.println(
-                        "Error while creating detection object for swimming pool: is the plugin nchenouard.tracker installed ?");
+            catch (final Exception e) {
+                System.out.println("Error while creating detection object for swimming pool: is the plugin nchenouard.tracker installed ?");
             }
         }
 
-        if (removePreviousSpotROIcheckBox.isSelected())
-        {
-            ArrayList<ROI> roiList = new ArrayList<ROI>(gdt.inputSequence.getROIs());
-            for (ROI roi : roiList)
-            {
-                if (roi.getName().startsWith("spot #"))
-                {
+        if (removePreviousSpotROIcheckBox.isSelected()) {
+            final ArrayList<ROI> roiList = new ArrayList<>(gdt.inputSequence.getROIs());
+            for (final ROI roi : roiList) {
+                if (roi.getName().startsWith("spot #")) {
                     gdt.inputSequence.removeROI(roi);
                 }
             }
@@ -625,21 +518,24 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
             gdt.inputSequence.addROIs(DetectionToROI.convertDetectionToROI(gdt.detectionResult), true);
     }
 
-    static int computeROISurface(ROI roi) throws InterruptedException
-    {
+    static int computeROISurface(final ROI roi) throws InterruptedException {
         return (int) ROIInteriorDescriptor.computeInterior(roi);
     }
 
     // FIXME : sequence should be removed from detection results.
-    private DetectionResult convertDetectionToDetectionResult(ArrayList<DetectionSpot> detections, Sequence sequence)
-    {
+    private DetectionResult convertDetectionToDetectionResult(final ArrayList<DetectionSpot> detections, final Sequence sequence) {
 
-        DetectionResult detectionResult = new DetectionResult();
-        for (DetectionSpot detectionSpot : detections)
-        {
-            Spot spot = new Spot(detectionSpot.getMassCenter().x, detectionSpot.getMassCenter().y,
-                    detectionSpot.getMassCenter().z, detectionSpot.minIntensity, detectionSpot.maxIntensity,
-                    detectionSpot.meanIntensity, convertToChenouardPoint3D(detectionSpot.points));
+        final DetectionResult detectionResult = new DetectionResult();
+        for (final DetectionSpot detectionSpot : detections) {
+            final Spot spot = new Spot(
+                    detectionSpot.getMassCenter().x,
+                    detectionSpot.getMassCenter().y,
+                    detectionSpot.getMassCenter().z,
+                    detectionSpot.minIntensity,
+                    detectionSpot.maxIntensity,
+                    detectionSpot.meanIntensity,
+                    convertToChenouardPoint3D(detectionSpot.points)
+            );
             detectionResult.addDetection(detectionSpot.getT(), spot);
         }
 
@@ -648,70 +544,57 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
         return detectionResult;
     }
 
-    private ArrayList<plugins.nchenouard.spot.Point3D> convertToChenouardPoint3D(ArrayList<Point3D> inputList)
-    {
+    private ArrayList<plugins.nchenouard.spot.Point3D> convertToChenouardPoint3D(final ArrayList<Point3D> inputList) {
 
-        ArrayList<plugins.nchenouard.spot.Point3D> returnList = new ArrayList<plugins.nchenouard.spot.Point3D>();
-        for (Point3D inputPoint : inputList)
-        {
+        final ArrayList<plugins.nchenouard.spot.Point3D> returnList = new ArrayList<>();
+        for (final Point3D inputPoint : inputList) {
             returnList.add(new plugins.nchenouard.spot.Point3D(inputPoint.x, inputPoint.y, inputPoint.z));
         }
         return returnList;
     }
 
-    /** workaround: the loadworkbook from XLSUtil has some problem because of an extra write wish prevent me from adding data **/
-    private WritableWorkbook loadWorkbook(File file) throws IOException, BiffException
-    {
+    /**
+     * workaround: the loadworkbook from XLSUtil has some problem because of an extra write wish prevent me from adding data
+     **/
+    private WritableWorkbook loadWorkbook(final File file) throws IOException, BiffException {
         if (!file.exists())
             return XLSUtil.createWorkbook(file);
 
-        final WritableWorkbook result = Workbook.createWorkbook(file, Workbook.getWorkbook(file));
-
-        return result;
+        return Workbook.createWorkbook(file, Workbook.getWorkbook(file));
     }
 
     /**
      * XLS Save
-     * 
-     * @param xlsFile
-     * @param gdt
-     * @param appendToExistingFile
-     * @throws InterruptedException
      */
-    void saveToXLS(File xlsFile, GlobalDetectionToken gdt, boolean appendToExistingFile) throws InterruptedException
-    {
+    void saveToXLS(final File xlsFile, final GlobalDetectionToken gdt, final boolean appendToExistingFile) throws InterruptedException {
         // XLSUtil xlsUtil = null;
         WritableWorkbook workbook = null;
         // XlsManager xlsManager = null;
-        try
-        {
-            if (appendToExistingFile)
-            {
+        try {
+            if (appendToExistingFile) {
                 workbook = loadWorkbook(xlsFile);
 
                 // xlsManager = new XlsManager( xlsFile , true ); // append
             }
-            else
-            {
+            else {
                 // xlsManager = new XlsManager( xlsFile ); // destroy previous file
                 workbook = XLSUtil.createWorkbook(xlsFile);
             }
         }
-        catch (IOException e)
-        {
+        catch (final IOException e) {
             new FailedAnnounceFrame("Cannot write the XLS file ! Is it already open in another application ?");
-            e.printStackTrace();
+            IcyExceptionHandler.showErrorMessage(e, true);
             return;
         }
-        catch (BiffException e)
-        {
-            e.printStackTrace();
+        catch (final BiffException e) {
+            IcyExceptionHandler.showErrorMessage(e, true);
         }
 
-        int row = 0;
+        int row;
 
-        int indexPage = workbook.getSheetNames().length; // to avoid having the same name of page else it erase the existing one
-        WritableSheet page = XLSUtil.createNewPage(workbook, indexPage + "-" + gdt.inputSequence.getName());
+        assert workbook != null;
+        final int indexPage = workbook.getSheetNames().length; // to avoid having the same name of page else it erase the existing one
+        final WritableSheet page = XLSUtil.createNewPage(workbook, indexPage + "-" + gdt.inputSequence.getName());
 
         // xlsManager.createNewPage( FileUtil.getFileName( gdt.inputSequence.getName() ) );
 
@@ -770,36 +653,25 @@ public class OutPutPanel extends GeneralSpotDetectionPanel
          * try {
          * workbook.setOutputFile( new File( xlsFile.getAbsoluteFile().toString() ) );
          * } catch (IOException e1) {
-         * // TODO Auto-generated catch block
          * e1.printStackTrace();
          * }
          */
 
         // Save file
 
-        try
-        {
+        try {
             XLSUtil.saveAndClose(workbook);
         }
-        catch (WriteException e)
-        {
+        catch (final WriteException | IOException e) {
             new FailedAnnounceFrame("Cannot write the XLS file ! Is it already open in another application ?");
-            e.printStackTrace();
-        }
-        catch (IOException e)
-        {
-            new FailedAnnounceFrame("Cannot write the XLS file ! Is it already open in another application ?");
-            e.printStackTrace();
+            IcyExceptionHandler.showErrorMessage(e, true);
         }
 
         // xlsManager.SaveAndClose();
-
     }
 
-    private void addXLSSeparator(WritableSheet page)
-    {
-        int row = page.getRows();
+    private void addXLSSeparator(final WritableSheet page) {
+        final int row = page.getRows();
         XLSUtil.setCellString(page, 0, row, "------------");
     }
-
 }

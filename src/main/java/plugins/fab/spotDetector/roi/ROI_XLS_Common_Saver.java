@@ -1,25 +1,39 @@
+/*
+ * Copyright (c) 2010-2023. Institut Pasteur.
+ *
+ * This file is part of Icy.
+ * Icy is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Icy is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Icy. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package plugins.fab.spotDetector.roi;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import icy.roi.ROI;
 import icy.util.XLSUtil;
 import icy.util.XMLUtil;
 import jxl.write.WritableSheet;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import plugins.fab.spotDetector.DetectionSpot;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 import plugins.kernel.roi.descriptor.measure.ROIInteriorDescriptor;
 
-public class ROI_XLS_Common_Saver
-{
+import java.util.ArrayList;
+import java.util.HashMap;
 
-    public static void saveXLS(WritableSheet page, GlobalDetectionToken gdt, String ROIGeneratorName) throws InterruptedException
-    {
+public class ROI_XLS_Common_Saver {
 
+    public static void saveXLS(final WritableSheet page, final GlobalDetectionToken gdt, final String ROIGeneratorName) throws InterruptedException {
         int row = page.getRows();
 
         // int row = page.getExcelPage().getRows();
@@ -30,7 +44,7 @@ public class ROI_XLS_Common_Saver
 
         row++;
 
-        HashMap<ROI, ArrayList<DetectionSpot>> ROI2Detection = gdt.roi2detection;
+        final HashMap<ROI, ArrayList<DetectionSpot>> ROI2Detection = gdt.roi2detection;
 
         XLSUtil.setCellString(page, 0, row, "ROI number");
         // page.setLabel( 0 , row , "ROI number" );
@@ -47,8 +61,7 @@ public class ROI_XLS_Common_Saver
         row++;
 
         int nb = 0;
-        for (ROI roi : ROI2Detection.keySet())
-        {
+        for (final ROI roi : ROI2Detection.keySet()) {
             // System.out.println("ROI id : " + roi.getId() );
             XLSUtil.setCellNumber(page, 0, row, nb);
             // page.setNumber( 0 , row , nb );
@@ -63,25 +76,21 @@ public class ROI_XLS_Common_Saver
             int xOffset = 4;
             // System.out.println("ok");
             // ---------------------------------------------------------- add ROI tag
-            Node tagNode = gdt.inputSequence.getNode("tags");
-            if (tagNode != null)
-            {
+            final Node tagNode = gdt.inputSequence.getNode("tags");
+            if (tagNode != null) {
 
-                ArrayList<Element> roiElementList = XMLUtil.getSubElements(tagNode);
+                final ArrayList<Element> roiElementList = XMLUtil.getElements(tagNode);
 
-                for (Element roiElement : roiElementList)
-                {
+                for (final Element roiElement : roiElementList) {
 
-                    int roiId = XMLUtil.getAttributeIntValue(roiElement, "ROI_ID", -1);
+                    final int roiId = XMLUtil.getAttributeIntValue(roiElement, "ROI_ID", -1);
                     // System.out.println("proposed : " + roiId );
-                    if (roiId == roi.getId())
-                    {
+                    if (roiId == roi.getId()) {
                         // System.out.println("match !");
-                        ArrayList<Element> roiTagList = XMLUtil.getSubElements(roiElement);
+                        final ArrayList<Element> roiTagList = XMLUtil.getElements(roiElement);
 
-                        for (Element tag : roiTagList)
-                        {
-                            String name = XMLUtil.getAttributeValue(tag, "name", "no name");
+                        for (final Element tag : roiTagList) {
+                            final String name = XMLUtil.getAttributeValue(tag, "name", "no name");
                             // System.out.println( name );
                             XLSUtil.setCellString(page, xOffset, row, name);
                             // page.setLabel( xOffset , row , name );
@@ -107,8 +116,7 @@ public class ROI_XLS_Common_Saver
         // page.setLabel( 0 , row , "Detection per ROI" );
 
         int nbROI = 0;
-        for (ROI roi : ROI2Detection.keySet())
-        {
+        for (final ROI roi : ROI2Detection.keySet()) {
             row++;
             row++;
             XLSUtil.setCellString(page, 0, row, "ROI Number:");
@@ -137,8 +145,7 @@ public class ROI_XLS_Common_Saver
             // page.setLabel( 8 , row , "average intensity" );
             row++;
             int detectionNumber = 0;
-            for (DetectionSpot detectionSpot : ROI2Detection.get(roi))
-            {
+            for (final DetectionSpot detectionSpot : ROI2Detection.get(roi)) {
                 XLSUtil.setCellNumber(page, 0, row, detectionNumber);
                 // page.setNumber( 0 , row , detectionNumber );
                 XLSUtil.setCellNumber(page, 1, row, detectionSpot.points.size());
@@ -167,9 +174,7 @@ public class ROI_XLS_Common_Saver
 
     }
 
-    static int computeROISurface(ROI roi) throws InterruptedException
-    {
+    static int computeROISurface(final ROI roi) throws InterruptedException {
         return (int) ROIInteriorDescriptor.computeInterior(roi);
     }
-
 }
