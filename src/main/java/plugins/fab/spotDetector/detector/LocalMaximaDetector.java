@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,8 +18,9 @@
 
 package plugins.fab.spotDetector.detector;
 
-import icy.image.IcyBufferedImage;
-import icy.type.collection.array.Array1DUtil;
+import org.bioimageanalysis.icy.common.collection.array.Array1DUtil;
+import org.bioimageanalysis.icy.model.image.IcyBufferedImage;
+import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.DetectionSpot;
 import plugins.fab.spotDetector.Point3D;
 
@@ -33,7 +34,6 @@ import java.util.Arrays;
 /**
  * @author nicolas chenouard/thibault lagache
  */
-
 public class LocalMaximaDetector {
     private final IcyBufferedImage image;// = null;
     // private IcyBufferedImage consideredMA;
@@ -49,7 +49,7 @@ public class LocalMaximaDetector {
     // int maxNumMax;
     int numMax;
 
-    public LocalMaximaDetector(final IcyBufferedImage image, final double distance) {
+    public LocalMaximaDetector(final @NotNull IcyBufferedImage image, final double distance) {
         this.image = image;
         numMax = 0;
         width = image.getWidth();
@@ -64,7 +64,6 @@ public class LocalMaximaDetector {
     }
 
     public void detectLocalMaxima() {
-
         detectLocalMaxima(2);
 
         /*maxima = new ArrayList<>(50);
@@ -96,9 +95,7 @@ public class LocalMaximaDetector {
 
     public void detectLocalMaxima(final double minDist) {
         maxima = new ArrayList<>(50);
-        final double[] results = Array1DUtil.arrayToDoubleArray(image.getDataXY(0),
-                image.isSignedDataType());
-
+        final double[] results = Array1DUtil.arrayToDoubleArray(image.getDataXY(0), image.isSignedDataType());
 
         for (int j = 0; j < image.getHeight(); j++) {
             for (int i = 0; i < image.getWidth(); i++) {
@@ -153,7 +150,7 @@ public class LocalMaximaDetector {
         return spots;
     }
 
-    protected boolean isMax18connex2D(final double[] results, final int i, final int j) {
+    protected boolean isMax18connex2D(final double @NotNull [] results, final int i, final int j) {
         final double val = results[j * width + i];// ]image.getDataAsDouble(i, j,
         // 0);// filteredArray.get(i, j);
         boolean max = true;
@@ -184,7 +181,7 @@ public class LocalMaximaDetector {
         return max;
     }
 
-    protected void explore18connex2D(final double[] results, final int i, final int j) {
+    protected void explore18connex2D(final double @NotNull [] results, final int i, final int j) {
         final double val = results[j * width + i];
         if (i < width - 1) {
             if (val >= results[j * width + i + 1])

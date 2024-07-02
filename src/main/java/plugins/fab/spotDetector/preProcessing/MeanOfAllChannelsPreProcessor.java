@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,13 +18,14 @@
 
 package plugins.fab.spotDetector.preProcessing;
 
-import icy.gui.util.GuiUtil;
-import icy.image.IcyBufferedImage;
-import icy.sequence.Sequence;
-import icy.type.DataType;
-import icy.type.collection.array.Array1DUtil;
-import icy.util.XLSUtil;
-import jxl.write.WritableSheet;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.bioimageanalysis.icy.common.collection.array.Array1DUtil;
+import org.bioimageanalysis.icy.common.type.DataType;
+import org.bioimageanalysis.icy.gui.GuiUtil;
+import org.bioimageanalysis.icy.io.xls.XLSXUtil;
+import org.bioimageanalysis.icy.model.image.IcyBufferedImage;
+import org.bioimageanalysis.icy.model.sequence.Sequence;
+import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 
 import javax.swing.*;
@@ -42,7 +43,7 @@ public class MeanOfAllChannelsPreProcessor extends PreProcessingAbstract {
     }
 
     @Override
-    public void process(final GlobalDetectionToken gdt) {
+    public void process(final @NotNull GlobalDetectionToken gdt) {
         gdt.inputComputationSequence = new Sequence();
 
         for (int t = 0; t < gdt.inputSequence.getSizeT(); t++)
@@ -74,10 +75,10 @@ public class MeanOfAllChannelsPreProcessor extends PreProcessingAbstract {
     }
 
     @Override
-    public void saveXLS(final WritableSheet page, final GlobalDetectionToken gdt) {
-        final int row = page.getRows();
-        XLSUtil.setCellString(page, 0, row, "Pre processor :");
-        XLSUtil.setCellString(page, 1, row, "Average of all channels :");
+    public void saveXLS(final @NotNull Sheet page, final GlobalDetectionToken gdt) {
+        final int row = page.getLastRowNum();
+        XLSXUtil.setCellString(page, 0, row, "Pre processor :");
+        XLSXUtil.setCellString(page, 1, row, "Average of all channels :");
 //		xlsManager.setLabel( 0 , row , "Pre processor :" );
 //		xlsManager.setLabel( 1 , row , "Average of all channels" );
     }

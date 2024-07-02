@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,11 +18,12 @@
 
 package plugins.fab.spotDetector.preProcessing;
 
-import icy.gui.util.ComponentUtil;
-import icy.gui.util.GuiUtil;
-import icy.sequence.SequenceUtil;
-import icy.util.XLSUtil;
-import jxl.write.WritableSheet;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.bioimageanalysis.icy.gui.GuiUtil;
+import org.bioimageanalysis.icy.gui.component.ComponentUtil;
+import org.bioimageanalysis.icy.io.xls.XLSXUtil;
+import org.bioimageanalysis.icy.model.sequence.SequenceUtil;
+import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 
 import javax.swing.*;
@@ -61,28 +62,28 @@ public class ChannelSelectorPreProcessor extends PreProcessingAbstract implement
     }
 
     @Override
-    public void process(final GlobalDetectionToken gdt) throws InterruptedException {
+    public void process(final @NotNull GlobalDetectionToken gdt) throws InterruptedException {
         gdt.inputComputationSequence = SequenceUtil.extractChannel(gdt.inputSequence, selectedChannel);
     }
 
     @Override
-    public void actionPerformed(final ActionEvent e) {
+    public void actionPerformed(final @NotNull ActionEvent e) {
         if (e.getSource() == channelSelectionComboBox) {
             selectedChannel = channelSelectionComboBox.getSelectedIndex();
         }
     }
 
     @Override
-    public void saveXLS(final WritableSheet page, final GlobalDetectionToken gdt) {
-        int row = page.getRows();
-        XLSUtil.setCellString(page, 0, row, "Pre processor :");
+    public void saveXLS(final @NotNull Sheet page, final GlobalDetectionToken gdt) {
+        int row = page.getLastRowNum();
+        XLSXUtil.setCellString(page, 0, row, "Pre processor :");
         //xlsManager.setLabel( 0 , row , "Pre processor :" );
-        XLSUtil.setCellString(page, 1, row, "Channel selector");
+        XLSXUtil.setCellString(page, 1, row, "Channel selector");
         //xlsManager.setLabel( 1 , row , "Channel selector" );
         row++;
-        XLSUtil.setCellString(page, 0, row, "Channel Selected:");
+        XLSXUtil.setCellString(page, 0, row, "Channel Selected:");
         //xlsManager.setLabel( 0 , row+1 , "Channel Selected:" );
-        XLSUtil.setCellNumber(page, 0, row, selectedChannel);
+        XLSXUtil.setCellNumber(page, 0, row, selectedChannel);
         //xlsManager.setNumber( 1 , row+1 , selectedChannel );
     }
 }

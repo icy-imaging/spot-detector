@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,10 +18,10 @@
 
 package plugins.fab.spotDetector;
 
-import icy.plugin.PluginDescriptor;
-import icy.plugin.PluginLoader;
-import icy.plugin.abstract_.Plugin;
-import icy.system.IcyExceptionHandler;
+import org.bioimageanalysis.icy.extension.plugin.PluginDescriptor;
+import org.bioimageanalysis.icy.extension.plugin.PluginLoader;
+import org.bioimageanalysis.icy.extension.plugin.abstract_.Plugin;
+import org.bioimageanalysis.icy.system.logging.IcyLogger;
 import plugins.fab.spotDetector.preProcessing.PreProcessingAbstract;
 
 import javax.swing.*;
@@ -29,6 +29,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Objects;
 
 public class PreProcessPanel extends GeneralSpotDetectionPanel implements ActionListener {
     JComboBox<PluginDescriptor> preProcessorChoice = new JComboBox<>();
@@ -88,17 +89,15 @@ public class PreProcessPanel extends GeneralSpotDetectionPanel implements Action
 
         Plugin plugin = null;
         try {
-            assert pluginDescriptor != null;
-            plugin = pluginDescriptor.getPluginClass().getDeclaredConstructor().newInstance();
+            plugin = Objects.requireNonNull(pluginDescriptor).getPluginClass().getDeclaredConstructor().newInstance();
         }
         catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e1) {
-            IcyExceptionHandler.showErrorMessage(e1, true);
+            IcyLogger.error(this.getClass(), e1);
         }
 
         preProcessorDetection = (PreProcessingAbstract) plugin;
 
-        assert preProcessorDetection != null;
-        pluginPanel.add(preProcessorDetection.getPanel(), BorderLayout.CENTER);
+        pluginPanel.add(Objects.requireNonNull(preProcessorDetection).getPanel(), BorderLayout.CENTER);
         pluginPanel.updateUI();
 
     }

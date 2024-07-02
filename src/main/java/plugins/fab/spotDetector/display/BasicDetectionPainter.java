@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,14 +18,15 @@
 
 package plugins.fab.spotDetector.display;
 
-import icy.canvas.Canvas2D;
-import icy.canvas.IcyCanvas;
-import icy.painter.Overlay;
-import icy.roi.ROI;
-import icy.sequence.Sequence;
-import icy.util.GraphicsUtil;
+import org.bioimageanalysis.icy.gui.GraphicsUtil;
+import org.bioimageanalysis.icy.gui.canvas.Canvas2D;
+import org.bioimageanalysis.icy.gui.canvas.IcyCanvas;
+import org.bioimageanalysis.icy.gui.canvas.VtkCanvas;
+import org.bioimageanalysis.icy.model.overlay.Overlay;
+import org.bioimageanalysis.icy.model.roi.ROI;
+import org.bioimageanalysis.icy.model.sequence.Sequence;
+import org.jetbrains.annotations.Contract;
 import plugins.fab.spotDetector.DetectionSpot;
-import plugins.kernel.canvas.VtkCanvas;
 import vtk.vtkActor;
 import vtk.vtkPolyDataMapper;
 import vtk.vtkRenderer;
@@ -38,7 +39,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class BasicDetectionPainter extends Overlay {
-
     boolean projectDetection = false;
     boolean displayDetectionMark = true;
 
@@ -58,12 +58,9 @@ public class BasicDetectionPainter extends Overlay {
 
     @Override
     public void paint(final Graphics2D g, final Sequence sequence, final IcyCanvas canvas) {
-
         //boolean projectDetection ;//= projectDetectionMark.isSelected();
 
         if (canvas instanceof Canvas2D) {
-
-
             final int currentT = canvas.getPositionT();
             final int currentZ = canvas.getPositionZ();
 
@@ -94,7 +91,6 @@ public class BasicDetectionPainter extends Overlay {
                         if (displayDetectionIndex) {
                             g.drawString("" + detectionArrayList.indexOf(detectionSpot), (int) x, (int) y);
                         }
-
                     }
                 }
             }
@@ -141,7 +137,6 @@ public class BasicDetectionPainter extends Overlay {
                 final Rectangle2D oneLetterBound = GraphicsUtil.getStringBounds(g, font, "X");
                 float offsetY = 0;
                 g.setColor(roi.getColor());
-
 
                 if (displayROINumber) {
 
@@ -233,16 +228,12 @@ public class BasicDetectionPainter extends Overlay {
                 for (final DisplayTxt dt : displayTxtList) {
                     g.drawString(dt.string, (float) dt.bounds.getX(), (float) dt.bounds.getY());
                 }
-
             }
-
-
         }
 
-        if (canvas instanceof VtkCanvas) {
+        if (canvas instanceof final VtkCanvas canvas3d) {
             // 3D canvas
-            final VtkCanvas canvas3d = (VtkCanvas) canvas;
-// FIXME : in case of several 3D viewer ?
+            // FIXME : in case of several 3D viewer ?
             if (!initialized3D) {
                 init3D(canvas3d.getRenderer());
                 initialized3D = true;
@@ -257,6 +248,7 @@ public class BasicDetectionPainter extends Overlay {
         String string;
         Rectangle2D bounds;
 
+        @Contract(pure = true)
         public DisplayTxt(final String string, final Rectangle2D bounds) {
             this.string = string;
             this.bounds = bounds;
@@ -265,12 +257,10 @@ public class BasicDetectionPainter extends Overlay {
 
     // init vtk objects
     private void init3D(final vtkRenderer renderer) {
-
 //			g.setColor( colorChooserButton.getColor() );
 //			Ellipse2D ellipse = new Ellipse2D.Double( 0,0,0,0 );
 
         for (final ROI roi : detectionsHashMap.keySet()) {
-
             final ArrayList<DetectionSpot> detectionArrayList = detectionsHashMap.get(roi);
 
             for (final DetectionSpot detectionSpot : detectionArrayList) {
@@ -303,8 +293,5 @@ public class BasicDetectionPainter extends Overlay {
                 renderer.AddActor(aSphere);
             }
         }
-
-
     }
-
 }

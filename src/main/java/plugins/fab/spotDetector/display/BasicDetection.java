@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,15 +18,15 @@
 
 package plugins.fab.spotDetector.display;
 
-import icy.gui.component.button.ColorChooserButton;
-import icy.gui.component.button.ColorChooserButton.ColorChangeListener;
-import icy.gui.main.GlobalSequenceListener;
-import icy.gui.util.ComponentUtil;
-import icy.gui.util.GuiUtil;
-import icy.main.Icy;
-import icy.painter.Overlay;
-import icy.sequence.Sequence;
-import jxl.write.WritableSheet;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.bioimageanalysis.icy.Icy;
+import org.bioimageanalysis.icy.gui.GuiUtil;
+import org.bioimageanalysis.icy.gui.component.ComponentUtil;
+import org.bioimageanalysis.icy.gui.component.button.ColorChooserButton;
+import org.bioimageanalysis.icy.gui.listener.GlobalSequenceListener;
+import org.bioimageanalysis.icy.model.overlay.Overlay;
+import org.bioimageanalysis.icy.model.sequence.Sequence;
+import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 
 import javax.swing.*;
@@ -35,8 +35,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class BasicDetection extends DisplayDetectionAbstract implements ActionListener, ColorChangeListener, GlobalSequenceListener {
-
+public class BasicDetection extends DisplayDetectionAbstract implements ActionListener, ColorChooserButton.ColorChangeListener, GlobalSequenceListener {
     JCheckBox displayROINumber = new JCheckBox("Display ROI number and name", true);
     JCheckBox displayDetectionMark = new JCheckBox("Display detection mark", true);
     JCheckBox displayDetectionNumberOverROICheckBox = new JCheckBox("Display number of detection of ROI", true);
@@ -44,7 +43,6 @@ public class BasicDetection extends DisplayDetectionAbstract implements ActionLi
     JCheckBox projectDetectionMark = new JCheckBox("Project all detections of a same stack", true);
     JCheckBox displayDetectionIndexCheckBox = new JCheckBox("Display detection index", false);
     JTextField fontSizeTextField = new JTextField("14");
-
 
     @Override
     public void actionPerformed(final ActionEvent e) {
@@ -56,9 +54,7 @@ public class BasicDetection extends DisplayDetectionAbstract implements ActionLi
         refreshPainterFromInterface();
     }
 
-
     public BasicDetection() {
-
         getPanel().setLayout(new BoxLayout(getPanel(), BoxLayout.PAGE_AXIS));
         getPanel().setBorder(new TitledBorder("Basic detection painter"));
 
@@ -84,13 +80,11 @@ public class BasicDetection extends DisplayDetectionAbstract implements ActionLi
         getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalGlue()));
 
         Icy.getMainInterface().addGlobalSequenceListener(this);
-
     }
 
 
     @Override
-    public void process(final GlobalDetectionToken gdt) {
-
+    public void process(final @NotNull GlobalDetectionToken gdt) {
         // remove painter from an existing sequence
 
         for (final Overlay painter : gdt.inputSequence.getOverlays()) {
@@ -119,11 +113,9 @@ public class BasicDetection extends DisplayDetectionAbstract implements ActionLi
 //		}
 
         //System.out.println("painter called with : " + gdt.roi2detection );
-
     }
 
-    private void updatePainter(final BasicDetectionPainter basicDetectionPainter) {
-
+    private void updatePainter(final @NotNull BasicDetectionPainter basicDetectionPainter) {
         basicDetectionPainter.color = colorChooserButton.getColor();
         basicDetectionPainter.displayDetectionMark = displayDetectionMark.isSelected();
         basicDetectionPainter.displayDetectionNumberOverROI = displayDetectionNumberOverROICheckBox.isSelected();
@@ -144,7 +136,6 @@ public class BasicDetection extends DisplayDetectionAbstract implements ActionLi
 
     @Override
     public void close() {
-
         // remove this painter on sequence containing the painters
 
         for (final Sequence sequence : Icy.getMainInterface().getSequences()) {
@@ -160,7 +151,6 @@ public class BasicDetection extends DisplayDetectionAbstract implements ActionLi
 //		{
 //			sequence.removePainter( this );
 //		}
-
     }
 
 
@@ -171,16 +161,14 @@ public class BasicDetection extends DisplayDetectionAbstract implements ActionLi
 
     @Override
     public void sequenceClosed(final Sequence sequence) {
-
+        //
     }
 
     private void refreshPainterFromInterface() {
         final Sequence focusedSequence = getActiveSequence();
         if (focusedSequence != null) {
             for (final Overlay painter : focusedSequence.getOverlays()) {
-                if (painter instanceof BasicDetectionPainter) {
-
-                    final BasicDetectionPainter bdp = (BasicDetectionPainter) painter;
+                if (painter instanceof final BasicDetectionPainter bdp) {
                     updatePainter(bdp);
                 }
             }
@@ -198,13 +186,10 @@ public class BasicDetection extends DisplayDetectionAbstract implements ActionLi
     }
 
     private void refreshDetectionInterfaceFromSequencePainter() {
-
         final Sequence focusedSequence = getActiveSequence();
         if (focusedSequence != null) {
             for (final Overlay painter : focusedSequence.getOverlays()) {
-                if (painter instanceof BasicDetectionPainter) {
-
-                    final BasicDetectionPainter basicDetectionPainter = (BasicDetectionPainter) painter;
+                if (painter instanceof final BasicDetectionPainter basicDetectionPainter) {
                     colorChooserButton.setEnabled(false);
                     colorChooserButton.setColor(basicDetectionPainter.color);
                     colorChooserButton.setEnabled(true);
@@ -230,7 +215,7 @@ public class BasicDetection extends DisplayDetectionAbstract implements ActionLi
     }
 
     @Override
-    public void saveXLS(final WritableSheet page, final GlobalDetectionToken gdt) {
-        // TODO Auto-generated method stub
+    public void saveXLS(final Sheet page, final GlobalDetectionToken gdt) {
+        //
     }
 }

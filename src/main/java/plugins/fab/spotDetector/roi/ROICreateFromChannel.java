@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,24 +18,25 @@
 
 package plugins.fab.spotDetector.roi;
 
-import icy.gui.frame.progress.AnnounceFrame;
-import icy.gui.util.ComponentUtil;
-import icy.gui.util.GuiUtil;
-import icy.image.IcyBufferedImage;
-import icy.roi.ROI;
-import icy.roi.ROI2D;
-import icy.roi.ROI3D;
-import icy.sequence.Sequence;
-import icy.system.thread.ThreadUtil;
-import icy.type.DataType;
-import icy.type.collection.array.Array1DUtil;
-import jxl.write.WritableSheet;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.bioimageanalysis.extension.kernel.roi.roi2d.ROI2DArea;
+import org.bioimageanalysis.extension.kernel.roi.roi2d.ROI2DRectangle;
+import org.bioimageanalysis.icy.common.collection.array.Array1DUtil;
+import org.bioimageanalysis.icy.common.type.DataType;
+import org.bioimageanalysis.icy.gui.GuiUtil;
+import org.bioimageanalysis.icy.gui.component.ComponentUtil;
+import org.bioimageanalysis.icy.gui.frame.progress.AnnounceFrame;
+import org.bioimageanalysis.icy.model.image.IcyBufferedImage;
+import org.bioimageanalysis.icy.model.roi.ROI;
+import org.bioimageanalysis.icy.model.roi.ROI2D;
+import org.bioimageanalysis.icy.model.roi.ROI3D;
+import org.bioimageanalysis.icy.model.sequence.Sequence;
+import org.bioimageanalysis.icy.system.thread.ThreadUtil;
+import org.jetbrains.annotations.NotNull;
 import plugins.adufour.connectedcomponents.ConnectedComponent;
 import plugins.adufour.connectedcomponents.ConnectedComponents;
 import plugins.fab.spotDetector.DetectionSpot;
 import plugins.fab.spotDetector.GlobalDetectionToken;
-import plugins.kernel.roi.roi2d.ROI2DArea;
-import plugins.kernel.roi.roi2d.ROI2DRectangle;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -102,7 +103,7 @@ public class ROICreateFromChannel extends ROIDetectionAbstract implements Action
     }
 
     @Override
-    public void process(final GlobalDetectionToken gdt) {
+    public void process(final @NotNull GlobalDetectionToken gdt) {
         createChannel(gdt.inputSequence);
         // gdt.roiArrayList.addAll( gdt.inputSequence.getROI2Ds() );
 
@@ -115,18 +116,14 @@ public class ROICreateFromChannel extends ROIDetectionAbstract implements Action
         for (final ROI roi : roiArrayList) {
             if (roi.getColor().getRed() == 0 && roi.getColor().getGreen() == 0 && roi.getColor().getBlue() == 0) // roi is black
             {
-                if (roi instanceof ROI2D) {
-                    final ROI2D roi2d = (ROI2D) roi;
-
+                if (roi instanceof final ROI2D roi2d) {
                     for (final DetectionSpot detectionSpot : cloneDetectionList) {
                         if (roi2d.contains(detectionSpot.getMassCenter().x, detectionSpot.getMassCenter().y)) {
                             gdt.detectionResult.remove(detectionSpot);
                         }
                     }
                 }
-                else if (roi instanceof ROI3D) {
-                    final ROI3D roi3d = (ROI3D) roi;
-
+                else if (roi instanceof final ROI3D roi3d) {
                     for (final DetectionSpot detectionSpot : cloneDetectionList) {
                         if (roi3d.contains(detectionSpot.getMassCenter().x, detectionSpot.getMassCenter().y,
                                 detectionSpot.getMassCenter().z)) {
@@ -143,8 +140,7 @@ public class ROICreateFromChannel extends ROIDetectionAbstract implements Action
 
         // create a fake ROI taking all the sequence if no existing ROI on sequence.
         if (roiArrayList.isEmpty()) {
-            ROI2Detection.put(new ROI2DRectangle(gdt.inputSequence.getBounds2D()),
-                    new ArrayList<>(gdt.detectionResult));
+            ROI2Detection.put(new ROI2DRectangle(gdt.inputSequence.getBounds2D()), new ArrayList<>(gdt.detectionResult));
         }
         else { // there is ROI is the sequence
 
@@ -154,18 +150,14 @@ public class ROICreateFromChannel extends ROIDetectionAbstract implements Action
 
             // fill hashMap
             for (final ROI roi : roiArrayList) {
-                if (roi instanceof ROI2D) {
-                    final ROI2D roi2d = (ROI2D) roi;
-
+                if (roi instanceof final ROI2D roi2d) {
                     for (final DetectionSpot spot : gdt.detectionResult) {
                         if (roi2d.contains(spot.getMassCenter().x, spot.getMassCenter().y)) {
                             ROI2Detection.get(roi).add(spot);
                         }
                     }
                 }
-                else if (roi instanceof ROI3D) {
-                    final ROI3D roi3d = (ROI3D) roi;
-
+                else if (roi instanceof final ROI3D roi3d) {
                     for (final DetectionSpot spot : gdt.detectionResult) {
                         if (roi3d.contains(spot.getMassCenter().x, spot.getMassCenter().y, spot.getMassCenter().z)) {
                             ROI2Detection.get(roi).add(spot);
@@ -189,7 +181,7 @@ public class ROICreateFromChannel extends ROIDetectionAbstract implements Action
     }
 
     @Override
-    public void actionPerformed(final ActionEvent e) {
+    public void actionPerformed(final @NotNull ActionEvent e) {
         if (e.getSource() == testSettingsButton) {
             ThreadUtil.bgRun(() -> createChannel(getActiveSequence()));
         }
@@ -252,7 +244,6 @@ public class ROICreateFromChannel extends ROIDetectionAbstract implements Action
                         roi2DArea.setAsBooleanMask(new Rectangle(0, 0, sequence.getWidth(), sequence.getHeight()), connectedMask);
                         roi2DArea.setName("Area " + ccList.indexOf(cc));
                         sequence.addROI(roi2DArea);
-
                     }
                     af.close();
                 }
@@ -273,7 +264,7 @@ public class ROICreateFromChannel extends ROIDetectionAbstract implements Action
         }
     }
 
-    private void dilateMask(final boolean[] booleanROI, final Sequence sequence) {
+    private void dilateMask(final boolean @NotNull [] booleanROI, final @NotNull Sequence sequence) {
         final int nbDilateIteration = Integer.parseInt(dilateROITextField.getText());
         final int width = sequence.getWidth();
         final int height = sequence.getHeight();
@@ -324,8 +315,7 @@ public class ROICreateFromChannel extends ROIDetectionAbstract implements Action
     }
 
     @Override
-    public void saveXLS(final WritableSheet page, final GlobalDetectionToken gdt) throws InterruptedException {
+    public void saveXLS(final Sheet page, final GlobalDetectionToken gdt) throws InterruptedException {
         ROI_XLS_Common_Saver.saveXLS(page, gdt, "ROI From channel module");
     }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,9 +18,12 @@
 
 package plugins.fab.spotDetector;
 
-import jxl.Cell;
-import jxl.Sheet;
-import jxl.write.WritableSheet;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.TableModelListener;
@@ -34,7 +37,7 @@ import javax.swing.table.TableModel;
 public class ExcelGrid extends JScrollPane {
     private JTable table;
 
-    public ExcelGrid(final WritableSheet page) {
+    public ExcelGrid(final Sheet page) {
         table = new JTable();
         updateSheet(page);
 
@@ -42,28 +45,28 @@ public class ExcelGrid extends JScrollPane {
         this.setAutoscrolls(true);
     }
 
-    public synchronized void updateSheet(final WritableSheet page) {
+    public synchronized void updateSheet(final Sheet page) {
         table = new JTable();
         this.setViewportView(table);
         if (page != null) table.setModel(new SheetTableModel(page));
     }
 
     private static class SheetTableModel implements TableModel {
-
         private final Sheet sheet;
 
+        @Contract(pure = true)
         public SheetTableModel(final Sheet sheet) {
             this.sheet = sheet;
         }
 
         @Override
         public int getRowCount() {
-            return sheet.getRows();
+            return sheet.getLastRowNum();
         }
 
         @Override
         public int getColumnCount() {
-            return sheet.getColumns();
+            return sheet.getRow(sheet.getFirstRowNum()).getLastCellNum();
         }
 
         /**
@@ -72,7 +75,7 @@ public class ExcelGrid extends JScrollPane {
          * A, B, C, ..., Z, AA, AB, etc.
          */
         @Override
-        public String getColumnName(int column) {
+        public @NotNull String getColumnName(int column) {
             final StringBuilder result = new StringBuilder();
             for (; column >= 0; column = column / 26 - 1) {
                 result.insert(0, (char) ((char) (column % 26) + 'A'));
@@ -80,38 +83,52 @@ public class ExcelGrid extends JScrollPane {
             return result.toString();
         }
 
+        @Contract(pure = true)
         @Override
         public Class<?> getColumnClass(final int columnIndex) {
             return String.class;
         }
 
+        @Contract(pure = true)
         @Override
         public boolean isCellEditable(final int rowIndex, final int columnIndex) {
             return false;
         }
 
         @Override
-        public Object getValueAt(final int rowIndex, final int columnIndex) {
+        public @Nullable Object getValueAt(final int rowIndex, final int columnIndex) {
             try {
-                final Cell cell = sheet.getCell(columnIndex, rowIndex);
-                return cell.getContents();
+                final Cell cell = sheet.getRow(rowIndex).getCell(columnIndex);
+                return switch (cell.getCellType()) {
+                    default -> cell.getStringCellValue();
+                    case NUMERIC -> cell.getNumericCellValue();
+                    case BOOLEAN -> cell.getBooleanCellValue();
+                    case FORMULA -> cell.getCellFormula();
+                    case BLANK, ERROR, _NONE -> null;
+                };
             }
             catch (final Exception e) {
-                //
+                IcyLogger.warn(this.getClass(), e, "Unable to get value at position (" + rowIndex + ", " + columnIndex + ")");
             }
             return null;
         }
 
+        @Contract(pure = true)
         @Override
         public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
+            //
         }
 
+        @Contract(pure = true)
         @Override
         public void addTableModelListener(final TableModelListener l) {
+            //
         }
 
+        @Contract(pure = true)
         @Override
         public void removeTableModelListener(final TableModelListener l) {
+            //
         }
     }
 }

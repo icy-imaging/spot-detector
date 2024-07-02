@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,10 +18,13 @@
 
 package plugins.fab.spotDetector.filtering;
 
-import icy.gui.util.ComponentUtil;
-import icy.gui.util.GuiUtil;
-import icy.roi.ROI;
-import jxl.write.WritableSheet;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.bioimageanalysis.icy.gui.GuiUtil;
+import org.bioimageanalysis.icy.gui.component.ComponentUtil;
+import org.bioimageanalysis.icy.model.roi.ROI;
+import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.DetectionSpot;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 import plugins.fab.spotDetector.Point3D;
@@ -31,7 +34,6 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 public class deClusterFiltering extends FilteringDetectionAbstract {
-
     IntervalSliderValue intervalSize = new IntervalSliderValue(0, 300, 0, 300, "Range of accepted objects (in pixels) (not used)");
     JTextField spotRaySizeTextBox = new JTextField("4");
 
@@ -45,11 +47,9 @@ public class deClusterFiltering extends FilteringDetectionAbstract {
         getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalStrut(10)));
         getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalStrut(50)));
         getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalGlue()));
-
     }
 
     private double getSurfaceOfOneSpot(final double spotRay) {
-
         final int bound = (int) Math.ceil(spotRay + 1);
         int surface = 0;
 
@@ -67,7 +67,6 @@ public class deClusterFiltering extends FilteringDetectionAbstract {
 
     // two spots right next to each other offset by 1 pixel.
     private double getSurfaceOfTwoContiguousSpot(final double spotRay) {
-
         final int bound = (int) Math.ceil(spotRay + 1) + 1;
         int surface = 0;
 
@@ -87,14 +86,14 @@ public class deClusterFiltering extends FilteringDetectionAbstract {
     }
 
     // TODO: 29/08/2023 Never used, should be deleted
-    private void fit(final DetectionSpot detectionSpot, final ArrayList<DetectionSpot> detectionList) {
-        detectionSpot.points.get(0);
+    @Contract(pure = true)
+    private void fit(final @NotNull DetectionSpot detectionSpot, final ArrayList<DetectionSpot> detectionList) {
+        detectionSpot.points.getFirst();
     }
 
     int nbSplitDetection = 0;
 
-    private void filterTest(final DetectionSpot detectionSpot, final ArrayList<DetectionSpot> detectionList, final GlobalDetectionToken gdt) {
-
+    private void filterTest(final @NotNull DetectionSpot detectionSpot, final ArrayList<DetectionSpot> detectionList, final GlobalDetectionToken gdt) {
         //System.out.println("e");
 
 //		if ( detectionSpot.points.size() < 2 ) // too small
@@ -147,15 +146,11 @@ public class deClusterFiltering extends FilteringDetectionAbstract {
 //			detectionList.add( newSpot );
 //			
 //		}
-
-
     }
 
-
     @Override
-    public void process(final GlobalDetectionToken gdt) {
-
-        System.out.println("Cluster filtering...");
+    public void process(final @NotNull GlobalDetectionToken gdt) {
+        IcyLogger.info(this.getClass(), "Cluster filtering...");
 
         final double spotRay = Double.parseDouble(spotRaySizeTextBox.getText());
 
@@ -164,9 +159,9 @@ public class deClusterFiltering extends FilteringDetectionAbstract {
         final int surfaceOfOneSpot = (int) getSurfaceOfOneSpot(spotRay);
         final int surfaceOfTwoContiguousSpot = (int) getSurfaceOfTwoContiguousSpot(spotRay);
 
-        System.out.println("surface of one spot: " + surfaceOfOneSpot);
-        System.out.println("surface of 2 glued spots: " + surfaceOfTwoContiguousSpot);
-        System.out.println("difference between the 2:" + (surfaceOfTwoContiguousSpot - surfaceOfOneSpot));
+        IcyLogger.info(this.getClass(), "surface of one spot: " + surfaceOfOneSpot);
+        IcyLogger.info(this.getClass(), "surface of 2 glued spots: " + surfaceOfTwoContiguousSpot);
+        IcyLogger.info(this.getClass(), "difference between the 2:" + (surfaceOfTwoContiguousSpot - surfaceOfOneSpot));
 
 
         final int highValue = surfaceOfOneSpot;
@@ -183,7 +178,7 @@ public class deClusterFiltering extends FilteringDetectionAbstract {
             }
 
         }
-        System.out.println("Nombre de split phase 1: " + nbSplitDetection);
+        IcyLogger.info(this.getClass(), "Number of split phase 1: " + nbSplitDetection);
 
         nbSplitDetection = 0;
         // filter the detection gdt.detectionResult dataset
@@ -195,13 +190,11 @@ public class deClusterFiltering extends FilteringDetectionAbstract {
                 filterTest(detectionSpot, detectionList, gdt);
             }
         }
-        System.out.println("Nombre de split phase 2: " + nbSplitDetection);
-
-
+        IcyLogger.info(this.getClass(), "Number of split phase 2: " + nbSplitDetection);
     }
 
     @Override
-    public void saveXLS(final WritableSheet page, final GlobalDetectionToken gdt) {
-        // TODO Auto-generated method stub
+    public void saveXLS(final Sheet page, final GlobalDetectionToken gdt) {
+        //
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,8 +18,9 @@
 
 package plugins.fab.spotDetector;
 
-import icy.gui.util.GuiUtil;
-import icy.network.NetworkUtil;
+import org.bioimageanalysis.icy.gui.GuiUtil;
+import org.bioimageanalysis.icy.network.NetworkUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -78,7 +79,7 @@ public class SettingPanel extends JPanel implements ActionListener {
     }
 
     @Override
-    public void actionPerformed(final ActionEvent e) {
+    public void actionPerformed(final @NotNull ActionEvent e) {
         if (e.getSource() == jumpToHelpButton) {
             NetworkUtil.openBrowser("https://icy.bioimageanalysis.org/plugin/Spot_Detector");
         }

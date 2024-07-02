@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,31 +18,35 @@
 
 package plugins.fab.spotDetector.detector;
 
-import icy.gui.dialog.MessageDialog;
-import icy.image.IcyBufferedImage;
-import icy.roi.BooleanMask2D;
-import icy.roi.ROI;
-import icy.sequence.Sequence;
-import icy.sequence.VolumetricImage;
-import icy.system.IcyExceptionHandler;
-import icy.system.SystemUtil;
-import icy.system.thread.Processor;
-import icy.type.DataType;
-import icy.type.collection.array.Array1DUtil;
-import icy.type.collection.array.ArrayUtil;
+import org.bioimageanalysis.extension.kernel.roi.roi2d.ROI2DRectangle;
+import org.bioimageanalysis.icy.common.collection.array.Array1DUtil;
+import org.bioimageanalysis.icy.common.collection.array.ArrayUtil;
+import org.bioimageanalysis.icy.common.type.DataType;
+import org.bioimageanalysis.icy.gui.dialog.MessageDialog;
+import org.bioimageanalysis.icy.model.image.IcyBufferedImage;
+import org.bioimageanalysis.icy.model.roi.ROI;
+import org.bioimageanalysis.icy.model.roi.mask.BooleanMask2D;
+import org.bioimageanalysis.icy.model.sequence.Sequence;
+import org.bioimageanalysis.icy.model.sequence.VolumetricImage;
+import org.bioimageanalysis.icy.system.SystemUtil;
+import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import org.bioimageanalysis.icy.system.thread.Processor;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import plugins.adufour.connectedcomponents.ConnectedComponent;
 import plugins.adufour.connectedcomponents.ConnectedComponents;
 import plugins.fab.spotDetector.DetectionSpot;
 import plugins.fab.spotDetector.Point3D;
 import plugins.fab.spotDetector.detector.wavelets.UDWT.B3SplineUDWT;
 import plugins.fab.spotDetector.detector.wavelets.UDWT.WaveletConfigException;
-import plugins.kernel.roi.roi2d.ROI2DRectangle;
 
 import javax.vecmath.Point3i;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -56,6 +60,7 @@ public class UDWTWaveletCore {
         final boolean useROIWat;
         final boolean doBinary;
 
+        @Contract(pure = true)
         public UDWTWaveletCore2DProcessor(final Sequence in, final int t, final int ns, final boolean neg, final boolean useROIWat, final boolean doBinary) {
             super();
 
@@ -97,11 +102,10 @@ public class UDWTWaveletCore {
                     scales = waveletTransform.b3WaveletScales2D(dataIn, image.getWidth(), image.getHeight(), numScales);
                 }
                 catch (final WaveletConfigException e1) {
-                    IcyExceptionHandler.showErrorMessage(e1, true);
+                    IcyLogger.error(this.getClass(), e1);
                     return detectionList;
                 }
-                final float[][] coefficients = waveletTransform.b3WaveletCoefficients2D(scales, dataIn, numScales,
-                        image.getWidth() * image.getHeight());
+                final float[][] coefficients = waveletTransform.b3WaveletCoefficients2D(scales, dataIn, numScales, image.getWidth() * image.getHeight());
 
                 // Apply threshold to coefficients but not last one ( residual )
 
@@ -120,8 +124,7 @@ public class UDWTWaveletCore {
                 Arrays.fill(coefficients[coefficients.length - 1], 0f);
 
                 // reconstruct the image from the wavelet coefficients
-                final IcyBufferedImage imageOut = new IcyBufferedImage(image.getWidth(), image.getHeight(), 1,
-                        DataType.UBYTE);
+                final IcyBufferedImage imageOut = new IcyBufferedImage(image.getWidth(), image.getHeight(), 1, DataType.UBYTE);
                 final float[] binaryDetectionResult = new float[image.getWidth() * image.getHeight()];
 
                 // waveletTransform.b3WaveletReconstruction2D(coefficients, coefficients[numScales], binaryDetectionResult, numScales,
@@ -155,8 +158,8 @@ public class UDWTWaveletCore {
         final boolean useROIWat;
         final boolean doBinary;
 
-        public UDWTWaveletCore2D3DProcessor(final Sequence in, final int t, final int ns, final boolean neg, final boolean useROIWat,
-                                            final boolean doBinary) {
+        @Contract(pure = true)
+        public UDWTWaveletCore2D3DProcessor(final Sequence in, final int t, final int ns, final boolean neg, final boolean useROIWat, final boolean doBinary) {
             super();
 
             sequence = in;
@@ -167,6 +170,7 @@ public class UDWTWaveletCore {
             this.doBinary = doBinary;
         }
 
+        @SuppressWarnings("resource")
         @Override
         public List<DetectionSpot> call() throws Exception {
             final List<DetectionSpot> detectionList = new ArrayList<>();
@@ -198,11 +202,10 @@ public class UDWTWaveletCore {
                     scales = waveletTransform.b3WaveletScales2D(dataIn, image.getWidth(), image.getHeight(), numScales);
                 }
                 catch (final WaveletConfigException e1) {
-                    IcyExceptionHandler.showErrorMessage(e1, true);
+                    IcyLogger.error(this.getClass(), e1);
                     return detectionList;
                 }
-                final float[][] coefficients = waveletTransform.b3WaveletCoefficients2D(scales, dataIn, numScales,
-                        image.getWidth() * image.getHeight());
+                final float[][] coefficients = waveletTransform.b3WaveletCoefficients2D(scales, dataIn, numScales, image.getWidth() * image.getHeight());
 
                 // Apply threshold to coefficients but not last one ( residual )
                 // Filtering
@@ -221,12 +224,10 @@ public class UDWTWaveletCore {
                 Arrays.fill(coefficients[coefficients.length - 1], 0f);
 
                 // reconstruct the image from the wavelet coefficients
-                final IcyBufferedImage imageOut = new IcyBufferedImage(image.getWidth(), image.getHeight(), 1,
-                        DataType.UBYTE);
+                final IcyBufferedImage imageOut = new IcyBufferedImage(image.getWidth(), image.getHeight(), 1, DataType.UBYTE);
                 final float[] binaryDetectionResult = new float[image.getWidth() * image.getHeight()];
 
-                waveletTransform.b3SpotConstruction2D(coefficients, binaryDetectionResult, numScales,
-                        image.getWidth() * image.getHeight(), UDWTScaleArrayList);
+                waveletTransform.b3SpotConstruction2D(coefficients, binaryDetectionResult, numScales, image.getWidth() * image.getHeight(), UDWTScaleArrayList);
 
                 // Binarisation de la reconstruction.
                 for (int i = 0; i < binaryDetectionResult.length; i++)
@@ -253,6 +254,7 @@ public class UDWTWaveletCore {
         final boolean useROIWat;
         final boolean doBinary;
 
+        @Contract(pure = true)
         public UDWTWaveletCore3DProcessor(final Sequence in, final int t, final int ns, final boolean neg, final boolean useROIWat, final boolean doBinary) {
             super();
 
@@ -289,11 +291,10 @@ public class UDWTWaveletCore {
                         sequence.getSizeZ(), numScales);
             }
             catch (final WaveletConfigException e1) {
-                IcyExceptionHandler.showErrorMessage(e1, true);
+                IcyLogger.error(this.getClass(), e1);
                 return detectionList;
             }
-            final float[][][] coefficients = waveletTransform.b3WaveletCoefficients3D(scales, dataIn, numScales,
-                    sequence.getSizeX() * sequence.getSizeY(), sequence.getSizeZ());
+            final float[][][] coefficients = waveletTransform.b3WaveletCoefficients3D(scales, dataIn, numScales, sequence.getSizeX() * sequence.getSizeY(), sequence.getSizeZ());
 
             // Apply threshold to coefficients but not last one ( residual )
 
@@ -323,8 +324,7 @@ public class UDWTWaveletCore {
 
             // reconstruct the image from the wavelet coefficients
             final float[][] reconstruction = new float[sequence.getSizeZ()][sequence.getSizeX() * sequence.getSizeY()];
-            waveletTransform.b3SpotConstruction3D(coefficients, reconstruction, numScales,
-                    sequence.getSizeX() * sequence.getSizeY(), sequence.getSizeZ(), UDWTScaleArrayList);
+            waveletTransform.b3SpotConstruction3D(coefficients, reconstruction, numScales, sequence.getSizeX() * sequence.getSizeY(), sequence.getSizeZ(), UDWTScaleArrayList);
 
             // Binarisation de la reconstruction.
             for (final float[] binaryDetectionResult : reconstruction) {
@@ -334,8 +334,7 @@ public class UDWTWaveletCore {
 
             final VolumetricImage vOut = new VolumetricImage();
             for (int z = 0; z < sequence.getSizeZ(); z++) {
-                final IcyBufferedImage imageOut = new IcyBufferedImage(sequence.getSizeX(), sequence.getSizeY(), 1,
-                        DataType.UBYTE);
+                final IcyBufferedImage imageOut = new IcyBufferedImage(sequence.getSizeX(), sequence.getSizeY(), 1, DataType.UBYTE);
                 ArrayUtil.arrayToArray(reconstruction[z], imageOut.getDataXY(0), true);
                 vOut.setImage(z, imageOut);
             }
@@ -361,6 +360,7 @@ public class UDWTWaveletCore {
 
     }
 
+    @Contract(pure = true)
     private int getNumberOfScale() {
         return UDWTScaleArrayList.size();
     }
@@ -375,16 +375,23 @@ public class UDWTWaveletCore {
 
     ArrayList<UDWTScale> UDWTScaleArrayList = null;
 
-    private void addConnectedComponentDetection(final VolumetricImage vOut, final List<DetectionSpot> detectionList, final int frame,
-                                                final Sequence originalSequence) {
+    private void addConnectedComponentDetection(final @NotNull VolumetricImage vOut, final List<DetectionSpot> detectionList, final int frame, final Sequence originalSequence) {
         final IcyBufferedImage img = vOut.getFirstImage();
         final VolumetricImage workVol = new VolumetricImage();
 
         for (int z = 0; z < vOut.getSize(); z++)
             workVol.setImage(z, new IcyBufferedImage(img.getSizeX(), img.getSizeY(), 1, DataType.UINT));
 
-        final List<ConnectedComponent> result = ConnectedComponents.extractConnectedComponents(vOut, 0,
-                ConnectedComponents.ExtractionType.BACKGROUND, false, false, false, 0, Integer.MAX_VALUE, workVol);
+        final List<ConnectedComponent> result = ConnectedComponents.extractConnectedComponents(vOut,
+                0,
+                ConnectedComponents.ExtractionType.BACKGROUND,
+                false,
+                false,
+                false,
+                0,
+                Integer.MAX_VALUE,
+                workVol
+        );
 
         detectionList.addAll(convert2detectionList(originalSequence, result, frame));
     }
@@ -409,12 +416,14 @@ public class UDWTWaveletCore {
      * @return the list detection
      * @throws InterruptedException
      */
-    public ArrayList<DetectionSpot> computeDetection(final boolean computeBinaryDetection, // was displayBinaryDetection. Caller should be changed accordinaly
-                                                     final ArrayList<UDWTScale> UDWTScaleArrayList, final Sequence sequenceIn, final boolean detectNegative,
-                                                     final boolean useROIforWATcomputation) throws InterruptedException {
-
-        return computeDetection(computeBinaryDetection, UDWTScaleArrayList, sequenceIn, detectNegative,
-                useROIforWATcomputation, false);
+    public ArrayList<DetectionSpot> computeDetection(
+            final boolean computeBinaryDetection, // was displayBinaryDetection. Caller should be changed accordinaly
+            final ArrayList<UDWTScale> UDWTScaleArrayList,
+            final Sequence sequenceIn,
+            final boolean detectNegative,
+            final boolean useROIforWATcomputation
+    ) throws InterruptedException {
+        return computeDetection(computeBinaryDetection, UDWTScaleArrayList, sequenceIn, detectNegative, useROIforWATcomputation, false);
     }
 
     /**
@@ -429,9 +438,15 @@ public class UDWTWaveletCore {
      * @return the list detection
      * @throws InterruptedException
      */
-    public ArrayList<DetectionSpot> computeDetection(final boolean computeBinaryDetection, // was displayBinaryDetection. Caller should be changed accordinaly
-                                                     final ArrayList<UDWTScale> UDWTScaleArrayList, final Sequence sequenceIn, final boolean detectNegative,
-                                                     final boolean useROIforWATcomputation, final boolean force2DWaveletsFor3D) throws InterruptedException {
+    @SuppressWarnings("resource")
+    public ArrayList<DetectionSpot> computeDetection(
+            final boolean computeBinaryDetection, // was displayBinaryDetection. Caller should be changed accordinaly
+            final ArrayList<UDWTScale> UDWTScaleArrayList,
+            final Sequence sequenceIn,
+            final boolean detectNegative,
+            final boolean useROIforWATcomputation,
+            final boolean force2DWaveletsFor3D
+    ) throws InterruptedException {
         this.UDWTScaleArrayList = UDWTScaleArrayList;
 
         final ArrayList<DetectionSpot> detectionList = new ArrayList<>();
@@ -456,7 +471,7 @@ public class UDWTWaveletCore {
         //
         if (sequenceIn.getSizeZ() == 1) {
             if (!B3SplineUDWT.isNumberOfScaleOkForImage2D(sequenceIn.getSizeX(), sequenceIn.getSizeY(), getNumberOfMaxEnabledScale())) {
-                System.err.println("Scale configuration error");
+                IcyLogger.error(this.getClass(), "Scale configuration error.");
                 return detectionList;
             }
 
@@ -470,17 +485,22 @@ public class UDWTWaveletCore {
         // 3D Image ( with the force2DWavelets for 3D enabled )
         //
         if (sequenceIn.getSizeZ() > 1 && force2DWaveletsFor3D) {
-            System.out.println("Entering force 2D wavelet for 3D");
+            IcyLogger.info(this.getClass(), "Entering force 2D wavelet for 3D.");
 
-            if (!B3SplineUDWT.isNumberOfScaleOkForImage2D(sequenceIn.getSizeX(), sequenceIn.getSizeY(),
-                    getNumberOfMaxEnabledScale())) {
-                System.err.println("Scale configuration error (your image is too small for this scale)");
+            if (!B3SplineUDWT.isNumberOfScaleOkForImage2D(sequenceIn.getSizeX(), sequenceIn.getSizeY(), getNumberOfMaxEnabledScale())) {
+                IcyLogger.error(this.getClass(), "Scale configuration error (your image is too small for this scale)");
                 return detectionList;
             }
 
             for (int t = 0; t < sequenceIn.getSizeT(); t++) {
-                tasks.add(processor.submit(new UDWTWaveletCore2D3DProcessor(sequenceIn, t, numScales, detectNegative,
-                        useROIforWATcomputation, computeBinaryDetection)));
+                tasks.add(processor.submit(new UDWTWaveletCore2D3DProcessor(
+                        sequenceIn,
+                        t,
+                        numScales,
+                        detectNegative,
+                        useROIforWATcomputation,
+                        computeBinaryDetection
+                )));
             }
         }
 
@@ -511,8 +531,14 @@ public class UDWTWaveletCore {
             }
 
             for (int t = 0; t < sequenceIn.getSizeT(); t++) {
-                tasks.add(processor.submit(new UDWTWaveletCore3DProcessor(sequenceIn, t, numScales, detectNegative,
-                        useROIforWATcomputation, computeBinaryDetection)));
+                tasks.add(processor.submit(new UDWTWaveletCore3DProcessor(
+                        sequenceIn,
+                        t,
+                        numScales,
+                        detectNegative,
+                        useROIforWATcomputation,
+                        computeBinaryDetection
+                )));
             }
         }
 
@@ -536,7 +562,7 @@ public class UDWTWaveletCore {
                 catch (final ExecutionException e) {
                     // display it only once
                     if (!exception) {
-                        IcyExceptionHandler.showErrorMessage(e.getCause(), true);
+                        IcyLogger.error(this.getClass(), e);
                         exception = true;
                     }
                 }
@@ -555,7 +581,7 @@ public class UDWTWaveletCore {
         return detectionList;
     }
 
-    static boolean[] buildBinaryMask(final Rectangle bounds, final List<ROI> rois, final int t, final int z) throws InterruptedException {
+    static boolean @Nullable [] buildBinaryMask(final Rectangle bounds, final @NotNull List<ROI> rois, final int t, final int z) throws InterruptedException {
         if (rois.isEmpty())
             return null;
 
@@ -573,8 +599,8 @@ public class UDWTWaveletCore {
      * mask[] is true, the pixel is considered in computation of the wat.
      * if mask is null, no mask considered, all pixel used.
      */
+    @SuppressWarnings("StatementWithEmptyBody")
     private void filter_wat(final float[] data, final int depth, final int width, final int height, final boolean[] mask) {
-
         if (!isScaleEnabled(depth)) // if the scale is not selected, fill of 0. could be optimized by not rebuilding it.
         {
             Arrays.fill(data, 0);
@@ -645,7 +671,8 @@ public class UDWTWaveletCore {
         return 0;
     }
 
-    private static float getVar(final float[] data) {
+    @Contract(pure = true)
+    private static float getVar(final float @NotNull [] data) {
         if (data.length <= 1)
             return 0;
 
@@ -662,6 +689,7 @@ public class UDWTWaveletCore {
         return (sum2 - sum * sum / data.length) / (data.length - 1);
     }
 
+    @Contract(pure = true)
     private static float getMean(final float[] data, final boolean[] mask) {
         float mean = 0;
         float sum = 0;
@@ -690,8 +718,7 @@ public class UDWTWaveletCore {
 
     // FIXME : change the structure of 4D detections into a detection pool for faster access to all the detections of a time or a time and a z
 
-    private List<DetectionSpot> convert2detectionList(final Sequence originalSequence, final List<ConnectedComponent> components,
-                                                      final int t) {
+    private @NotNull List<DetectionSpot> convert2detectionList(final Sequence originalSequence, final @NotNull List<ConnectedComponent> components, final int t) {
         final List<DetectionSpot> detectionList = new ArrayList<>();
 
         for (final ConnectedComponent cc : components) {
@@ -709,7 +736,7 @@ public class UDWTWaveletCore {
         return detectionList;
     }
 
-    private void computeMinMeanMaxIntensity(final DetectionSpot detection, final Sequence originalSequence) {
+    private void computeMinMeanMaxIntensity(final @NotNull DetectionSpot detection, final @NotNull Sequence originalSequence) {
         double minIntensity = Double.MAX_VALUE;
         double maxIntensity = Double.MIN_VALUE;
         double sumIntensity = 0;
@@ -725,8 +752,7 @@ public class UDWTWaveletCore {
                 data = originalSequence.getDataXY(detection.getT(), (int) point.z, 0);
             }
 
-            assert data != null;
-            final double value = Array1DUtil.getValue(data, ((int) point.y * w) + (int) point.x, signed);
+            final double value = Array1DUtil.getValue(Objects.requireNonNull(data), ((int) point.y * w) + (int) point.x, signed);
 
             if (value < minIntensity)
                 minIntensity = value;

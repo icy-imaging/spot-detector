@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -17,6 +17,9 @@
  */
 
 package plugins.fab.spotDetector;
+
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -46,6 +49,7 @@ public class DetectionSpot {
     /**
      *
      */
+    @Contract(pure = true)
     public DetectionSpot() {
         points = new ArrayList<>();
         massCenter = null;
@@ -69,7 +73,6 @@ public class DetectionSpot {
      * @return mass center position
      */
     public Point3D getMassCenter() {
-
         if (massCenter == null)
             computeMassCenter();
         return massCenter;
@@ -112,7 +115,7 @@ public class DetectionSpot {
      *
      * @param point3d position to set
      */
-    public void setMassCenter(final Point3D point3d) {
+    public void setMassCenter(final @NotNull Point3D point3d) {
         massCenter.x = point3d.x;
         massCenter.y = point3d.y;
         massCenter.z = point3d.z;

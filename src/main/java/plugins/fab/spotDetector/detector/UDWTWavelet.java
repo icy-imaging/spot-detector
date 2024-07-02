@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,22 +18,20 @@
 
 package plugins.fab.spotDetector.detector;
 
-import icy.roi.ROI;
-import icy.sequence.Sequence;
-import icy.sequence.SequenceUtil;
-import icy.system.thread.ThreadUtil;
+import org.bioimageanalysis.icy.model.roi.ROI;
+import org.bioimageanalysis.icy.model.sequence.Sequence;
+import org.bioimageanalysis.icy.model.sequence.SequenceUtil;
+import org.bioimageanalysis.icy.system.thread.ThreadUtil;
 import plugins.fab.spotDetector.DetectionSpot;
 
 import java.util.ArrayList;
 
 public class UDWTWavelet {
-
     private ArrayList<DetectionSpot> detectionResult;
 
     public ArrayList<DetectionSpot> getDetectionResult() {
         return detectionResult;
     }
-
 
     public void detect(
             final Sequence inputSequence,
@@ -87,7 +85,6 @@ public class UDWTWavelet {
                 UDWTScaleArrayList.add(scale);
             }
 
-
 //				for ( int i = 0 ; i< 5 ; i++ )
 //				{
 //					//System.out.println( "Scale enabled #" +i +" : " + useScaleBoolean[i].getValue() );
@@ -112,7 +109,8 @@ public class UDWTWavelet {
                 UDWTScaleArrayList,
                 inputComputationSequence,
                 detectNegative,
-                useROIforWATComputation);
+                useROIforWATComputation
+        );
 
         // set outputs.
 
@@ -137,8 +135,5 @@ public class UDWTWavelet {
 //
 //			binarySpotSequence.setValue( binarySequence );
 //		}
-
-
     }
-
 }

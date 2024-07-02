@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,17 +18,20 @@
 
 package plugins.fab.spotDetector;
 
-import icy.gui.frame.IcyFrame;
-import icy.gui.frame.IcyFrameEvent;
-import icy.gui.frame.IcyFrameListener;
-import icy.gui.frame.progress.AnnounceFrame;
-import icy.gui.frame.progress.FailedAnnounceFrame;
-import icy.gui.util.GuiUtil;
-import icy.network.NetworkUtil;
-import icy.plugin.PluginDescriptor;
-import icy.plugin.abstract_.PluginActionable;
-import icy.system.IcyExceptionHandler;
-import icy.system.thread.ThreadUtil;
+import org.bioimageanalysis.icy.extension.plugin.PluginDescriptor;
+import org.bioimageanalysis.icy.extension.plugin.abstract_.PluginActionable;
+import org.bioimageanalysis.icy.extension.plugin.annotation_.IcyPluginIcon;
+import org.bioimageanalysis.icy.extension.plugin.annotation_.IcyPluginName;
+import org.bioimageanalysis.icy.gui.GuiUtil;
+import org.bioimageanalysis.icy.gui.frame.IcyFrame;
+import org.bioimageanalysis.icy.gui.frame.IcyFrameEvent;
+import org.bioimageanalysis.icy.gui.frame.IcyFrameListener;
+import org.bioimageanalysis.icy.gui.frame.progress.AnnounceFrame;
+import org.bioimageanalysis.icy.gui.frame.progress.FailedAnnounceFrame;
+import org.bioimageanalysis.icy.network.NetworkUtil;
+import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import org.bioimageanalysis.icy.system.thread.ThreadUtil;
+import org.jetbrains.annotations.NotNull;
 import plugins.fab.ROITagger.TagPainterManager;
 
 import javax.swing.*;
@@ -49,6 +52,8 @@ import java.util.List;
  *
  * @author Fabrice de Chaumont
  */
+@IcyPluginName("Spot Detector")
+@IcyPluginIcon(path = "/spot-detector.png")
 public class SpotDetector extends PluginActionable implements TreeSelectionListener, ActionListener, IcyFrameListener {
     IcyFrame icyFrame;
     private JTree tree;
@@ -91,7 +96,6 @@ public class SpotDetector extends PluginActionable implements TreeSelectionListe
 
     public void setSelection(final String selection) {
         // get all nodes
-
         final List<TreeNode> nodes = new ArrayList<>();
         final TreeNode root = (TreeNode) tree.getModel().getRoot();
         nodes.add(root);
@@ -169,7 +173,15 @@ public class SpotDetector extends PluginActionable implements TreeSelectionListe
 
         mainPanel = GuiUtil.generatePanel();
 
-        icyFrame = GuiUtil.generateTitleFrame("Spot Detector", mainPanel, new Dimension(600, 120), true, true, true, true);
+        icyFrame = GuiUtil.generateTitleFrame(
+                "Spot Detector",
+                mainPanel,
+                new Dimension(600, 120),
+                true,
+                true,
+                true,
+                true
+        );
 
         buildDetectionModulePanelArrayList();
 
@@ -245,8 +257,11 @@ public class SpotDetector extends PluginActionable implements TreeSelectionListe
         rightScrollPane.revalidate();
 
         icyFrame.addToDesktopPane();
-        icyFrame.setSize(new Dimension(512, 480));
-        // icyFrame.pack();
+        icyFrame.setPreferredSize(new Dimension(800, 480));
+        icyFrame.setSize(icyFrame.getPreferredSize());
+        icyFrame.setMinimumSize(icyFrame.getPreferredSize());
+        icyFrame.setResizable(true);
+        icyFrame.pack();
         icyFrame.center();
         icyFrame.toFront();
 
@@ -258,7 +273,7 @@ public class SpotDetector extends PluginActionable implements TreeSelectionListe
     ComputationThread computationThread = null;
 
     @Override
-    public void actionPerformed(final ActionEvent e) {
+    public void actionPerformed(final @NotNull ActionEvent e) {
         if (e.getSource() == startButton) {
             startComputation(true, true);
         }
@@ -329,7 +344,7 @@ public class SpotDetector extends PluginActionable implements TreeSelectionListe
                 new FailedAnnounceFrame(e.getMessage());
             }
             catch (final Exception e) {
-                IcyExceptionHandler.showErrorMessage(e, true);
+                IcyLogger.error(this.getClass(), e);
             }
             finally {
                 annonceFrame.close();

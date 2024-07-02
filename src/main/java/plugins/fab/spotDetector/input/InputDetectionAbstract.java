@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -22,9 +22,7 @@ import plugins.fab.spotDetector.DetectionModuleAbstract;
 import plugins.fab.spotDetector.SpotDetector;
 
 public abstract class InputDetectionAbstract extends DetectionModuleAbstract {
-
     public SpotDetector spotDetector;
 
     //abstract public void init(); // called once before the detection loop for setup purpose.
-
 }

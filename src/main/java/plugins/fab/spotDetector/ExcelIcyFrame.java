@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,15 +18,14 @@
 
 package plugins.fab.spotDetector;
 
-import icy.gui.frame.IcyFrame;
-import icy.system.thread.ThreadUtil;
-import jxl.write.WritableSheet;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.bioimageanalysis.icy.gui.frame.IcyFrame;
+import org.bioimageanalysis.icy.system.thread.ThreadUtil;
 
 /**
  * @author Fabrice de Chaumont
  */
 public class ExcelIcyFrame {
-
     /**
      * Display an XLS page
      * Work in progress
@@ -34,13 +33,12 @@ public class ExcelIcyFrame {
      * copy / paste and so on...
      *
      * @param name          name of the frame
-     * @param writableSheet excel sheet to display
+     * @param sheet excel sheet to display
      */
-    public ExcelIcyFrame(final String name, final WritableSheet writableSheet) {
-
+    public ExcelIcyFrame(final String name, final Sheet sheet) {
         ThreadUtil.invokeLater(() -> {
             final IcyFrame frame = new IcyFrame(name);
-            frame.getContentPane().add(new ExcelGrid(writableSheet));
+            frame.getContentPane().add(new ExcelGrid(sheet));
             frame.pack();
             frame.setVisible(true);
         });

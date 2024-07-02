@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,10 +18,12 @@
 
 package plugins.fab.spotDetector;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.geom.Point2D;
 
 public class Point3D {
-
     @Override
     public String toString() {
         return "Point3D[" + x + "," + y + "," + z + "]";
@@ -29,7 +31,9 @@ public class Point3D {
 
     public double x, y, z;
 
+    @Contract(pure = true)
     public Point3D() {
+        //
     }
 
     public Point3D(final double x, final double y, final double z) {
@@ -44,7 +48,7 @@ public class Point3D {
         this.z = 0;
     }
 
-    public Point3D(final double[] coord) {
+    public Point3D(final double @NotNull [] coord) {
         this.x = coord[0];
         this.y = coord[1];
         if (coord.length > 2)
@@ -56,5 +60,4 @@ public class Point3D {
     public Point2D asPoint2D() {
         return new Point2D.Double(x, y);
     }
-
 }

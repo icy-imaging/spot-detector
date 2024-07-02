@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,10 +18,11 @@
 
 package plugins.fab.spotDetector;
 
-import icy.plugin.PluginDescriptor;
-import icy.plugin.PluginLoader;
-import icy.plugin.abstract_.Plugin;
-import icy.system.IcyExceptionHandler;
+import org.bioimageanalysis.icy.extension.plugin.PluginDescriptor;
+import org.bioimageanalysis.icy.extension.plugin.PluginLoader;
+import org.bioimageanalysis.icy.extension.plugin.abstract_.Plugin;
+import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.display.DisplayDetectionAbstract;
 
 import javax.swing.*;
@@ -29,6 +30,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Objects;
 
 public class DisplayDetectionPanel extends GeneralSpotDetectionPanel implements ActionListener {
     JComboBox<PluginDescriptor> inputChoice = new JComboBox<>();
@@ -75,8 +77,6 @@ public class DisplayDetectionPanel extends GeneralSpotDetectionPanel implements 
                     }
                 }
         }
-
-
     }
 
     /**
@@ -86,39 +86,34 @@ public class DisplayDetectionPanel extends GeneralSpotDetectionPanel implements 
         if (displayDetectionPlugin != null) {
             displayDetectionPlugin.close();
         }
-
     }
 
     /**
      * refresh interface and re-instantiate processor
      */
     private void refreshInterface() {
-        //System.out.println("display detection choice");
+        IcyLogger.debug(this.getClass(), "display detection choice");
 
         final PluginDescriptor pluginDescriptor = (PluginDescriptor) inputChoice.getSelectedItem();
-        //System.out.println(pluginDescriptor.getName());
 
         pluginPanel.removeAll();
 
         Plugin plugin = null;
         try {
-            assert pluginDescriptor != null;
-            plugin = pluginDescriptor.getPluginClass().getDeclaredConstructor().newInstance();
+            plugin = Objects.requireNonNull(pluginDescriptor).getPluginClass().getDeclaredConstructor().newInstance();
         }
         catch (final InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e1) {
-            IcyExceptionHandler.showErrorMessage(e1, true);
+            IcyLogger.error(this.getClass(), e1);
         }
 
         displayDetectionPlugin = (DisplayDetectionAbstract) plugin;
 
-        assert displayDetectionPlugin != null;
-        pluginPanel.add(displayDetectionPlugin.getPanel(), BorderLayout.CENTER);
+        pluginPanel.add(Objects.requireNonNull(displayDetectionPlugin).getPanel(), BorderLayout.CENTER);
         pluginPanel.updateUI();
-
     }
 
     @Override
-    public void actionPerformed(final ActionEvent e) {
+    public void actionPerformed(final @NotNull ActionEvent e) {
         if (e.getSource() == inputChoice) {
             refreshInterface();
         }

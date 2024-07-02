@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,13 +18,13 @@
 
 package plugins.fab.spotDetector.detector;
 
-import icy.gui.util.GuiUtil;
-import icy.image.ImageUtil;
-import icy.main.Icy;
-import icy.resource.ResourceUtil;
-import icy.roi.ROI;
-import icy.util.XLSUtil;
-import jxl.write.WritableSheet;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.bioimageanalysis.icy.Icy;
+import org.bioimageanalysis.icy.gui.GuiUtil;
+import org.bioimageanalysis.icy.io.xls.XLSXUtil;
+import org.bioimageanalysis.icy.model.image.ImageUtil;
+import org.bioimageanalysis.icy.model.roi.ROI;
+import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 import plugins.fab.spotDetector.detector.wavelets.UDWT.B3SplineUDWT;
 
@@ -45,8 +45,7 @@ public class UDWTWaveletDetector extends DetectorDetectionAbstract implements Ac
     }
 
     @Override
-    public void process(final GlobalDetectionToken gdt) throws InterruptedException {
-
+    public void process(final @NotNull GlobalDetectionToken gdt) throws InterruptedException {
         final boolean detectNegative = detectNegativeRadio.isSelected();
         final boolean computeWATwithROI = computeWATwithROICheckBox.isSelected();
         final boolean force2DWaveletsFor2D = use2DWaveletsFor3DImages.isSelected();
@@ -64,8 +63,13 @@ public class UDWTWaveletDetector extends DetectorDetectionAbstract implements Ac
         }
 
         gdt.detectionResult = waveletCore.computeDetection(
-                displayBinaryImageCheckBox.isSelected(), UDWTScaleArrayList,
-                gdt.inputComputationSequence, detectNegative, computeWATwithROI, force2DWaveletsFor2D);
+                displayBinaryImageCheckBox.isSelected(),
+                UDWTScaleArrayList,
+                gdt.inputComputationSequence,
+                detectNegative,
+                computeWATwithROI,
+                force2DWaveletsFor2D
+        );
 
         if (displayBinaryImageCheckBox.isSelected()) {
             Icy.getMainInterface().addSequence(waveletCore.getBinarySequence());
@@ -139,28 +143,26 @@ public class UDWTWaveletDetector extends DetectorDetectionAbstract implements Ac
         configurationPanel.add(scrollPane, BorderLayout.CENTER);
 
         return configurationPanel;
-
     }
 
     private void refreshExamplePanel() {
-
         examplePanel.removeAll();
 
         if (detectNegativeRadio.isSelected()) {
             examplePanel.add(GuiUtil.createLineBoxPanel(
                     Box.createHorizontalGlue(),
-                    getIcon("plugins/fab/spotDetector/detector/neg1.png"),
+                    getIcon("/plugins/fab/spotDetector/detector/neg1.png"),
                     Box.createHorizontalStrut(5),
-                    getIcon("plugins/fab/spotDetector/detector/neg2.png"),
+                    getIcon("/plugins/fab/spotDetector/detector/neg2.png"),
                     Box.createHorizontalStrut(5),
-                    getIcon("plugins/fab/spotDetector/detector/neg3.png"),
+                    getIcon("/plugins/fab/spotDetector/detector/neg3.png"),
                     Box.createHorizontalGlue()
             ));
         }
         else {
             examplePanel.add(GuiUtil.createLineBoxPanel(
                     Box.createHorizontalGlue(),
-                    getIcon("plugins/fab/spotDetector/detector/pos1.png"),
+                    getIcon("/plugins/fab/spotDetector/detector/pos1.png"),
                     Box.createHorizontalGlue()
             ));
         }
@@ -171,8 +173,8 @@ public class UDWTWaveletDetector extends DetectorDetectionAbstract implements Ac
     }
 
 
-    private JLabel getIcon(final String name) {
-        final ImageIcon icon = ResourceUtil.getImageIcon(ImageUtil.load(getResourceAsStream(name)));
+    private @NotNull JLabel getIcon(final String name) {
+        final ImageIcon icon = new ImageIcon(ImageUtil.load(this.getClass().getResourceAsStream(name)));
         final JLabel label = new JLabel(icon);
         label.setSize(64, 64);
         label.setPreferredSize(new Dimension(64, 64));
@@ -181,7 +183,6 @@ public class UDWTWaveletDetector extends DetectorDetectionAbstract implements Ac
     }
 
     private void addScalePanel(final boolean enabled) {
-
         final UDWTScale scale = new UDWTScale(UDWTScaleArrayList.size() + 1, enabled, 100);
         UDWTScaleArrayList.add(scale);
         rebuildScalePanel();
@@ -196,20 +197,16 @@ public class UDWTWaveletDetector extends DetectorDetectionAbstract implements Ac
         scalePanel.add(Box.createVerticalGlue());
         scalePanel.repaint();
         scrollPane.validate();
-
     }
 
     private void removeScalePanel() {
-
         if (UDWTScaleArrayList.isEmpty()) return;
-        UDWTScaleArrayList.remove(UDWTScaleArrayList.size() - 1);
+        UDWTScaleArrayList.removeLast();
         rebuildScalePanel();
-
     }
 
     @Override
-    public void actionPerformed(final ActionEvent e) {
-
+    public void actionPerformed(final @NotNull ActionEvent e) {
         if (e.getSource() == detectNegativeRadio || e.getSource() == detectPositiveRadio) {
             refreshExamplePanel();
         }
@@ -224,47 +221,60 @@ public class UDWTWaveletDetector extends DetectorDetectionAbstract implements Ac
     }
 
     @Override
-    public void saveXLS(final WritableSheet page, final GlobalDetectionToken gdt) {
-
-        int row = page.getRows();
-        XLSUtil.setCellString(page, 0, row, "Detector:");
-        XLSUtil.setCellString(page, 1, row, "UDWT Wavelet Detector");
+    public void saveXLS(final @NotNull Sheet page, final GlobalDetectionToken gdt) {
+        int row = page.getLastRowNum();
+        XLSXUtil.setCellString(page, 0, row, "Detector:");
+        XLSXUtil.setCellString(page, 1, row, "UDWT Wavelet Detector");
         //xlsManager.setLabel( 0 , row , "Detector: " );
         //xlsManager.setLabel( 1 , row , "UDWT Wavelet Detector" );
         row++;
-        XLSUtil.setCellString(page, 0, row, "Parameters:");
+        XLSXUtil.setCellString(page, 0, row, "Parameters:");
         //xlsManager.setLabel( 0 , row , "Parameters:" );
         row++;
 
         for (final UDWTScale b3Scale : UDWTScaleArrayList) {
-            XLSUtil.setCellString(page, 0, row, "Scale " + b3Scale.scaleNumber);
+            XLSXUtil.setCellString(page, 0, row, "Scale " + b3Scale.scaleNumber);
             //xlsManager.setLabel( 0 , row , "Scale " + b3Scale.scaleNumber  );
             if (b3Scale.isEnabled()) {
-                XLSUtil.setCellString(page, 1, row, "Enabled");
+                XLSXUtil.setCellString(page, 1, row, "Enabled");
                 //xlsManager.setLabel( 1 , row , "Enabled" );
             }
             else {
-                XLSUtil.setCellString(page, 1, row, "Disabled");
+                XLSXUtil.setCellString(page, 1, row, "Disabled");
                 //xlsManager.setLabel( 1 , row , "Disabled" );
             }
-            XLSUtil.setCellString(page, 2, row, "Threshold:");
+            XLSXUtil.setCellString(page, 2, row, "Threshold:");
             //xlsManager.setLabel( 2 , row , "Threshold:" );
-            XLSUtil.setCellNumber(page, 3, row, b3Scale.getThreshold());
+            XLSXUtil.setCellNumber(page, 3, row, b3Scale.getThreshold());
             //xlsManager.setNumber( 3 , row , b3Scale.getThreshold() );
 
             row++;
         }
 
-        if (B3SplineUDWT.isNumberOfScaleOkForImage3D(gdt.inputSequence.getSizeX(),
-                gdt.inputSequence.getSizeY(), gdt.inputSequence.getSizeZ(), waveletCore.getNumberOfMaxEnabledScale())) {
-            XLSUtil.setCellString(page, 0, row, "ERROR : Scale configuration error");
+        if (B3SplineUDWT.isNumberOfScaleOkForImage3D(
+                gdt.inputSequence.getSizeX(),
+                gdt.inputSequence.getSizeY(),
+                gdt.inputSequence.getSizeZ(),
+                waveletCore.getNumberOfMaxEnabledScale()
+        )) {
+            XLSXUtil.setCellString(page, 0, row, "ERROR : Scale configuration error");
             //xlsManager.setLabel( 0 , row , "ERROR : Scale configuration error" );
             row++;
             final int minSize = B3SplineUDWT.getMinSize(waveletCore.getNumberOfMaxEnabledScale());
-            XLSUtil.setCellString(page, 0, row, "Scales selected needs an image of size " + minSize + "x" + minSize + "x" + minSize + " image");
+            XLSXUtil.setCellString(
+                    page,
+                    0,
+                    row,
+                    "Scales selected needs an image of size " + minSize + "x" + minSize + "x" + minSize + " image"
+            );
             //xlsManager.setLabel( 0 , row , "Scales selected needs an image of size " + minSize + "x"+ minSize + "x"+ minSize + " image" );
             row++;
-            XLSUtil.setCellString(page, 0, row, "Input Image size is: " + gdt.inputSequence.getSizeX() + "x" + gdt.inputSequence.getSizeY() + "x" + gdt.inputSequence.getSizeZ() + " image");
+            XLSXUtil.setCellString(
+                    page,
+                    0,
+                    row,
+                    "Input Image size is: " + gdt.inputSequence.getSizeX() + "x" + gdt.inputSequence.getSizeY() + "x" + gdt.inputSequence.getSizeZ() + " image"
+            );
             //xlsManager.setLabel( 0 , row , "Input Image size is: " + gdt.inputSequence.getSizeX() + "x"+ gdt.inputSequence.getSizeY() + "x"+ gdt.inputSequence.getSizeZ() + " image" );
         }
     }

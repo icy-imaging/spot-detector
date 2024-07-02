@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,12 +18,14 @@
 
 package plugins.fab.spotDetector.input;
 
-import icy.file.FileUtil;
-import icy.file.Loader;
-import icy.gui.frame.progress.ProgressFrame;
-import icy.gui.util.GuiUtil;
-import icy.main.Icy;
-import jxl.write.WritableSheet;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.bioimageanalysis.icy.Icy;
+import org.bioimageanalysis.icy.gui.GuiUtil;
+import org.bioimageanalysis.icy.gui.frame.progress.ProgressFrame;
+import org.bioimageanalysis.icy.io.FileUtil;
+import org.bioimageanalysis.icy.io.Loader;
+import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 import plugins.fab.spotDetector.GlobalDetectionTokenListener;
 
@@ -39,14 +41,12 @@ import java.util.List;
 import java.util.prefs.Preferences;
 
 public class batchInputDetection extends InputDetectionAbstract implements ActionListener, GlobalDetectionTokenListener {
-
     JButton inputFolderButton = new JButton("No folder selected");
     JLabel fileToProcessLabel = new JLabel("no files to process");
     ArrayList<File> originalFileToProcessArrayList = new ArrayList<>(); // never altered but by the user himself
     ArrayList<File> processFileToProcessArrayList = new ArrayList<>(); // list used while processing
 
     public batchInputDetection() {
-
         getPanel().setLayout(new BoxLayout(getPanel(), BoxLayout.PAGE_AXIS));
         getPanel().setBorder(new TitledBorder("Batch Input. Grab all file recursivly but does not enter in 'save' folders"));
 
@@ -61,10 +61,8 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
         getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalGlue()));
     }
 
-
     @Override
     public void detectionFinished() {
-
         if (!processFileToProcessArrayList.isEmpty()) {
             spotDetector.detectionModuleRequestRecompute(true, true);
         }
@@ -79,7 +77,6 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
 
     @Override
     public void process(final GlobalDetectionToken gdt) {
-
         Icy.getMainInterface().closeAllViewers();
 
         if (progressFrame == null) progressFrame = new ProgressFrame("");
@@ -89,7 +86,7 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
         gdt.addGlobalDetectionTokenListener(this);
 
         if (!processFileToProcessArrayList.isEmpty()) {
-            final String path = processFileToProcessArrayList.remove(0).getAbsolutePath();
+            final String path = processFileToProcessArrayList.removeFirst().getAbsolutePath();
             gdt.inputSequence = Loader.loadSequence(Loader.getSequenceFileImporter(path, true), path, 0, false);
         }
 
@@ -100,8 +97,7 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
 
 
     @Override
-    public void actionPerformed(final ActionEvent e) {
-
+    public void actionPerformed(final @NotNull ActionEvent e) {
         if (e.getSource() == inputFolderButton) {
             final JFileChooser fileChooser = new JFileChooser();
             fileChooser.setDialogType(JFileChooser.DIRECTORIES_ONLY);
@@ -121,7 +117,6 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
                 buildFileList(scanDirectory);
             }
         }
-
     }
 
     private void buildFileList(final String scanDirectory) {
@@ -131,8 +126,8 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
         fileToProcessLabel.setText("Total number of files in batch:" + originalFileToProcessArrayList.size());
     }
 
-    public void scanDir(final File directory) {
-        //System.out.println("Getting into dir : " + directory.getAbsolutePath() );
+    public void scanDir(final @NotNull File directory) {
+        IcyLogger.debug(this.getClass(), "Scanning directory: " + directory.getAbsolutePath() );
 
         final List<File> listImages;
 
@@ -239,14 +234,13 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
 
         // copy file in the process list
         processFileToProcessArrayList = new ArrayList<>(originalFileToProcessArrayList);
-
     }
 
 
     @Override
-    public void saveXLS(final WritableSheet page, final GlobalDetectionToken gdt) {
+    public void saveXLS(final Sheet page, final GlobalDetectionToken gdt) {
+        //
     }
-
 
 //	ScannerFileThread scanThread = null;
 //
@@ -381,6 +375,4 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
 //		}
 //
 //	}
-
-
 }

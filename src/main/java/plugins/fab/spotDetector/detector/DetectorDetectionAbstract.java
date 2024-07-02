@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -21,7 +21,5 @@ package plugins.fab.spotDetector.detector;
 import plugins.fab.spotDetector.DetectionModuleAbstract;
 
 public abstract class DetectorDetectionAbstract extends DetectionModuleAbstract {
-
     //public abstract void process(GlobalDetectionToken gdt) ;
-
 }

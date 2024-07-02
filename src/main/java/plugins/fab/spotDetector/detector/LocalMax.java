@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,25 +18,33 @@
 
 package plugins.fab.spotDetector.detector;
 
-import icy.image.IcyBufferedImage;
-import icy.sequence.Sequence;
-import icy.type.DataType;
-import icy.type.collection.array.Array1DUtil;
+import org.bioimageanalysis.icy.common.collection.array.Array1DUtil;
+import org.bioimageanalysis.icy.common.type.DataType;
+import org.bioimageanalysis.icy.model.image.IcyBufferedImage;
+import org.bioimageanalysis.icy.model.sequence.Sequence;
+import org.jetbrains.annotations.NotNull;
 
 import javax.vecmath.Point3i;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class LocalMax {
-
-    public static ArrayList<Point3i> localMax(
-            final Sequence in, final Sequence out, final int t, final int c, final double threshold, final int halfSizeX, final int halfSizeY, final int halfSizeZ) {
+    public static @NotNull ArrayList<Point3i> localMax(
+            final @NotNull Sequence in,
+            final Sequence out,
+            final int t,
+            final int c,
+            final double threshold,
+            final int halfSizeX,
+            final int halfSizeY,
+            final int halfSizeZ
+    ) {
         final int w = in.getSizeX();
         final int h = in.getSizeY();
         final int d = in.getSizeZ();
 
         final Object array_z_xy = in.getDataXYZ(t, c);
-        final DataType dataType = in.getDataType_();
+        final DataType dataType = in.getDataType();
 
         int i, j, k, nx, ny, nz;
 
@@ -93,5 +101,4 @@ public class LocalMax {
         }
         return localmax;
     }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,11 +18,13 @@
 
 package plugins.fab.spotDetector;
 
-import icy.plugin.PluginDescriptor;
-import icy.plugin.PluginLoader;
-import icy.plugin.abstract_.Plugin;
-import icy.roi.ROI;
-import icy.system.IcyExceptionHandler;
+import org.bioimageanalysis.icy.extension.plugin.PluginDescriptor;
+import org.bioimageanalysis.icy.extension.plugin.PluginLoader;
+import org.bioimageanalysis.icy.extension.plugin.abstract_.Plugin;
+import org.bioimageanalysis.icy.model.roi.ROI;
+import org.bioimageanalysis.icy.system.IcyExceptionHandler;
+import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.roi.ROIDetectionAbstract;
 
 import javax.swing.*;
@@ -31,6 +33,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class ROIPanel extends GeneralSpotDetectionPanel implements ActionListener {
     JComboBox<PluginDescriptor> inputChoice = new JComboBox<>();
@@ -55,7 +58,6 @@ public class ROIPanel extends GeneralSpotDetectionPanel implements ActionListene
      * Build the list of available processor founds in the plugin list
      */
     private void buildInputChoice() {
-
         inputChoice.removeAll();
 
         for (final PluginDescriptor pluginDescriptor : PluginLoader.getPlugins()) {
@@ -68,7 +70,6 @@ public class ROIPanel extends GeneralSpotDetectionPanel implements ActionListene
                     }
                 }
         }
-
     }
 
     /**
@@ -81,23 +82,20 @@ public class ROIPanel extends GeneralSpotDetectionPanel implements ActionListene
 
         Plugin plugin = null;
         try {
-            assert pluginDescriptor != null;
-            plugin = pluginDescriptor.getPluginClass().getDeclaredConstructor().newInstance();
+            plugin = Objects.requireNonNull(pluginDescriptor).getPluginClass().getDeclaredConstructor().newInstance();
         }
         catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e1) {
-            IcyExceptionHandler.showErrorMessage(e1, true);
+            IcyLogger.error(this.getClass(), e1);
         }
 
         roiDetection = (ROIDetectionAbstract) plugin;
 
-        assert roiDetection != null;
-        pluginPanel.add(roiDetection.getPanel(), BorderLayout.CENTER);
+        pluginPanel.add(Objects.requireNonNull(roiDetection).getPanel(), BorderLayout.CENTER);
         pluginPanel.updateUI();
-
     }
 
     @Override
-    public void actionPerformed(final ActionEvent e) {
+    public void actionPerformed(final @NotNull ActionEvent e) {
         if (e.getSource() == inputChoice) {
             refreshInterface();
         }

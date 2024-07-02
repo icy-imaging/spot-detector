@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,10 +18,11 @@
 
 package plugins.fab.spotDetector;
 
-import icy.plugin.PluginDescriptor;
-import icy.plugin.PluginLoader;
-import icy.plugin.abstract_.Plugin;
-import icy.system.IcyExceptionHandler;
+import org.bioimageanalysis.icy.extension.plugin.PluginDescriptor;
+import org.bioimageanalysis.icy.extension.plugin.PluginLoader;
+import org.bioimageanalysis.icy.extension.plugin.abstract_.Plugin;
+import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.detector.DetectorDetectionAbstract;
 
 import javax.swing.*;
@@ -29,6 +30,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Objects;
 
 public class DetectorPanel extends GeneralSpotDetectionPanel implements ActionListener {
     JComboBox<PluginDescriptor> inputChoice = new JComboBox<>();
@@ -58,7 +60,6 @@ public class DetectorPanel extends GeneralSpotDetectionPanel implements ActionLi
      * Build the list of available processor founds in the plugin list
      */
     private void buildInputChoice() {
-
         inputChoice.removeAll();
 
         for (final PluginDescriptor pluginDescriptor : PluginLoader.getPlugins()) {
@@ -77,15 +78,15 @@ public class DetectorPanel extends GeneralSpotDetectionPanel implements ActionLi
     }
 
     public void setDetectorPlugin(final PluginDescriptor detectorPluginDescriptorClass) {
-        System.out.println("Detector set is " + detectorPluginDescriptorClass);
+        IcyLogger.debug(this.getClass(), "Detector set is " + detectorPluginDescriptorClass);
 
         for (int i = 0; i < inputChoice.getModel().getSize(); i++) {
             final PluginDescriptor pd = inputChoice.getModel().getElementAt(i);
-            System.out.println("*" + pd.getClassName() + "*");
-            System.out.println("*" + detectorPluginDescriptorClass.getClassName() + "*");
+            IcyLogger.debug(this.getClass(), "*" + pd.getClassName() + "*");
+            IcyLogger.debug(this.getClass(), "*" + detectorPluginDescriptorClass.getClassName() + "*");
 
             if (pd.getClassName().equals(detectorPluginDescriptorClass.getClassName())) {
-                System.out.println("Match");
+                IcyLogger.debug(this.getClass(), "Match");
                 inputChoice.setSelectedItem(pd);
                 break;
             }
@@ -94,16 +95,14 @@ public class DetectorPanel extends GeneralSpotDetectionPanel implements ActionLi
 
     private void refreshInterface() {
         final PluginDescriptor pluginDescriptor = (PluginDescriptor) inputChoice.getSelectedItem();
-        assert pluginDescriptor != null;
-        refreshInterface(pluginDescriptor);
+        refreshInterface(Objects.requireNonNull(pluginDescriptor));
     }
 
     /**
      * refresh interface and reinstanciate processor
      */
-    private void refreshInterface(final PluginDescriptor pluginDescriptor) {
-
-        //System.out.println("Detector panel : selected plugin is : " +pluginDescriptor.getClassName() );
+    private void refreshInterface(final @NotNull PluginDescriptor pluginDescriptor) {
+        IcyLogger.debug(this.getClass(), "Detector panel : selected plugin is : " + pluginDescriptor.getClassName());
 
         pluginPanel.removeAll();
 
@@ -112,22 +111,19 @@ public class DetectorPanel extends GeneralSpotDetectionPanel implements ActionLi
             plugin = pluginDescriptor.getPluginClass().getDeclaredConstructor().newInstance();
         }
         catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e1) {
-            IcyExceptionHandler.showErrorMessage(e1, true);
+            IcyLogger.error(this.getClass(), e1);
         }
 
         detectorDetection = (DetectorDetectionAbstract) plugin;
 
-        assert detectorDetection != null;
-        pluginPanel.add(detectorDetection.getPanel(), BorderLayout.CENTER);
+        pluginPanel.add(Objects.requireNonNull(detectorDetection).getPanel(), BorderLayout.CENTER);
         pluginPanel.updateUI();
-
     }
 
     @Override
-    public void actionPerformed(final ActionEvent e) {
+    public void actionPerformed(final @NotNull ActionEvent e) {
         if (e.getSource() == inputChoice) {
             refreshInterface();
         }
     }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,11 +18,12 @@
 
 package plugins.fab.spotDetector.filtering;
 
-import icy.gui.util.ComponentUtil;
-import icy.gui.util.GuiUtil;
-import icy.roi.ROI;
-import icy.util.XLSUtil;
-import jxl.write.WritableSheet;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.bioimageanalysis.icy.gui.GuiUtil;
+import org.bioimageanalysis.icy.gui.component.ComponentUtil;
+import org.bioimageanalysis.icy.io.xls.XLSXUtil;
+import org.bioimageanalysis.icy.model.roi.ROI;
+import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.DetectionSpot;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 
@@ -30,7 +31,6 @@ import javax.swing.*;
 import java.util.ArrayList;
 
 public class SizeFiltering extends FilteringDetectionAbstract {
-
     JTextField minValueTextField = new JTextField("0");
     JTextField maxValueTextField = new JTextField("3000");
 
@@ -47,12 +47,10 @@ public class SizeFiltering extends FilteringDetectionAbstract {
         getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalStrut(10)));
         getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalStrut(50)));
         getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalGlue()));
-
     }
 
     @Override
-    public void process(final GlobalDetectionToken gdt) {
-
+    public void process(final @NotNull GlobalDetectionToken gdt) {
         //System.out.println("Size filtering...");
 
         // Filter the roi dataset
@@ -66,7 +64,6 @@ public class SizeFiltering extends FilteringDetectionAbstract {
                     detection.remove(detectionSpot);
                 }
             }
-
         }
 
         // filter the detection gdt.detectionResult dataset
@@ -81,28 +78,24 @@ public class SizeFiltering extends FilteringDetectionAbstract {
                 }
             }
         }
-
     }
 
 
     @Override
-    public void saveXLS(final WritableSheet page, final GlobalDetectionToken gdt) {
-
-        int row = page.getRows();
-        XLSUtil.setCellString(page, 0, row, "Filtering: Simple Filtering");
+    public void saveXLS(final @NotNull Sheet page, final GlobalDetectionToken gdt) {
+        int row = page.getLastRowNum();
+        XLSXUtil.setCellString(page, 0, row, "Filtering: Simple Filtering");
         //xlsManager.setLabel( 0 , row , "Filtering: Simple Filtering");
         row++;
-        XLSUtil.setCellString(page, 0, row, "Detection Size range:");
+        XLSXUtil.setCellString(page, 0, row, "Detection Size range:");
         //xlsManager.setLabel( 0 , row , "Detection Size range:");
-        XLSUtil.setCellString(page, 1, row, "Min:");
+        XLSXUtil.setCellString(page, 1, row, "Min:");
         //xlsManager.setLabel( 1 , row , "Min:");
-        XLSUtil.setCellNumber(page, 2, row, Integer.parseInt(minValueTextField.getText()));
+        XLSXUtil.setCellNumber(page, 2, row, Integer.parseInt(minValueTextField.getText()));
         //xlsManager.setNumber( 2 , row , Integer.parseInt( minValueTextField.getText() ) );
-        XLSUtil.setCellString(page, 3, row, "Max:");
+        XLSXUtil.setCellString(page, 3, row, "Max:");
         //xlsManager.setLabel( 3 , row , "Max:");
-        XLSUtil.setCellNumber(page, 4, row, Integer.parseInt(maxValueTextField.getText()));
+        XLSXUtil.setCellNumber(page, 4, row, Integer.parseInt(maxValueTextField.getText()));
         //xlsManager.setNumber( 4 , row , Integer.parseInt( maxValueTextField.getText() ) );
-
     }
-
 }

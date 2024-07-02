@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,12 +18,13 @@
 
 package plugins.fab.spotDetector.input;
 
-import icy.gui.main.GlobalSequenceListener;
-import icy.gui.util.GuiUtil;
-import icy.main.Icy;
-import icy.sequence.Sequence;
-import icy.util.XLSUtil;
-import jxl.write.WritableSheet;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.bioimageanalysis.icy.Icy;
+import org.bioimageanalysis.icy.gui.GuiUtil;
+import org.bioimageanalysis.icy.gui.listener.GlobalSequenceListener;
+import org.bioimageanalysis.icy.io.xls.XLSXUtil;
+import org.bioimageanalysis.icy.model.sequence.Sequence;
+import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 
 import javax.swing.*;
@@ -35,11 +36,9 @@ public class currentSequenceInputDetection extends InputDetectionAbstract {
     Color labelDefaultColor;
 
     public currentSequenceInputDetection() {
-
         labelDefaultColor = currentSequenceNameLabel.getForeground();
         getPanel().setLayout(new BoxLayout(getPanel(), BoxLayout.PAGE_AXIS));
-        getPanel().setBorder(new TitledBorder("Select channel to use to " +
-                "create ROI"));
+        getPanel().setBorder(new TitledBorder("Select channel to use to create ROI"));
 
         getPanel().add(GuiUtil.createLineBoxPanel(Box.createVerticalGlue()));
         getPanel().add(GuiUtil.createLineBoxPanel(new JLabel("Current sequence input:")));
@@ -68,7 +67,7 @@ public class currentSequenceInputDetection extends InputDetectionAbstract {
              */
             @Override
             public void sequenceClosed(final Sequence sequence) {
-
+                //
             }
         });
 
@@ -87,26 +86,21 @@ public class currentSequenceInputDetection extends InputDetectionAbstract {
     }
 
     @Override
-    public void process(final GlobalDetectionToken gdt) {
+    public void process(final @NotNull GlobalDetectionToken gdt) {
         gdt.inputSequence = getActiveSequence();
     }
 
     @Override
-    public void saveXLS(final WritableSheet page, final GlobalDetectionToken gdt) {
-
-        int row = page.getRows();
-        XLSUtil.setCellString(page, 0, row, "Input Module:");
+    public void saveXLS(final @NotNull Sheet page, final @NotNull GlobalDetectionToken gdt) {
+        int row = page.getLastRowNum();
+        XLSXUtil.setCellString(page, 0, row, "Input Module:");
         //xlsManager.setLabel( 0 , row , "Input Module: " );
-        XLSUtil.setCellString(page, 1, row, "Current Sequence Input");
+        XLSXUtil.setCellString(page, 1, row, "Current Sequence Input");
         //xlsManager.setLabel( 1 , row , "Current Sequence Input" );
         row++;
-        XLSUtil.setCellString(page, 0, row, "File name:");
+        XLSXUtil.setCellString(page, 0, row, "File name:");
         //xlsManager.setLabel( 0 , row+1 , "File Name:" );
-        XLSUtil.setCellString(page, 1, row, gdt.inputSequence.getFilename());
+        XLSXUtil.setCellString(page, 1, row, gdt.inputSequence.getFilename());
         //xlsManager.setLabel( 1 , row+1 , gdt.inputSequence.getFilename() );
-
-
     }
-
-
 }

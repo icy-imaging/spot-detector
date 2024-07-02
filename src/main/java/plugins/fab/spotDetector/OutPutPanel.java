@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,34 +18,32 @@
 
 package plugins.fab.spotDetector;
 
-import icy.canvas.Canvas2D;
-import icy.file.FileUtil;
-import icy.file.Saver;
-import icy.gui.frame.progress.FailedAnnounceFrame;
-import icy.gui.util.GuiUtil;
-import icy.gui.viewer.Viewer;
-import icy.image.IcyBufferedImage;
-import icy.main.Icy;
-import icy.roi.ROI;
-import icy.sequence.Sequence;
-import icy.sequence.SequenceUtil;
-import icy.swimmingPool.SwimmingObject;
-import icy.system.IcyExceptionHandler;
-import icy.system.thread.ThreadUtil;
-import icy.type.DataType;
-import icy.util.XLSUtil;
-import icy.util.XMLUtil;
-import jxl.Workbook;
-import jxl.read.biff.BiffException;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-import jxl.write.WriteException;
 import loci.formats.FormatException;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.bioimageanalysis.extension.kernel.roi.descriptor.measure.ROIInteriorDescriptor;
+import org.bioimageanalysis.icy.Icy;
+import org.bioimageanalysis.icy.common.type.DataType;
+import org.bioimageanalysis.icy.gui.GuiUtil;
+import org.bioimageanalysis.icy.gui.canvas.Canvas2D;
+import org.bioimageanalysis.icy.gui.frame.progress.FailedAnnounceFrame;
+import org.bioimageanalysis.icy.gui.viewer.Viewer;
+import org.bioimageanalysis.icy.io.FileUtil;
+import org.bioimageanalysis.icy.io.Saver;
+import org.bioimageanalysis.icy.io.xls.XLSXUtil;
+import org.bioimageanalysis.icy.io.xml.XMLUtil;
+import org.bioimageanalysis.icy.model.image.IcyBufferedImage;
+import org.bioimageanalysis.icy.model.roi.ROI;
+import org.bioimageanalysis.icy.model.sequence.Sequence;
+import org.bioimageanalysis.icy.model.sequence.SequenceUtil;
+import org.bioimageanalysis.icy.model.swimmingPool.SwimmingObject;
+import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import org.bioimageanalysis.icy.system.thread.ThreadUtil;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import plugins.fab.spotDetector.detector.DetectionToROI;
-import plugins.kernel.roi.descriptor.measure.ROIInteriorDescriptor;
 import plugins.nchenouard.spot.DetectionResult;
 import plugins.nchenouard.spot.Spot;
 
@@ -104,7 +102,6 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
         add(Box.createVerticalGlue());
 
         // add( Box.createVerticalGlue() );
-
     }
 
     static class XMLPanel extends JPanel implements ActionListener {
@@ -158,7 +155,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
         }
 
         @Override
-        public void actionPerformed(final ActionEvent e) {
+        public void actionPerformed(final @NotNull ActionEvent e) {
 
             refreshEnableStatePanel();
 
@@ -257,7 +254,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
         }
 
         @Override
-        public void actionPerformed(final ActionEvent e) {
+        public void actionPerformed(final @NotNull ActionEvent e) {
             refreshEnableStatePanel();
 
             if (e.getSource() == specifyFile) {
@@ -272,7 +269,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
         }
     }
 
-    ArrayList<String> getTagList(final Sequence sequence, final ROI roi) {
+    ArrayList<String> getTagList(final @NotNull Sequence sequence, final ROI roi) {
         final ArrayList<String> tagList = new ArrayList<>();
 
         final Node tagNode = sequence.getNode("tags");
@@ -282,7 +279,6 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
                 final int roiId = XMLUtil.getAttributeIntValue(roiElement1, "ROI_ID", -1);
 
                 if (roiId == roi.getId()) {
-
                     final ArrayList<Element> roiTagList = XMLUtil.getElements(roiElement1);
 
                     for (final Element tag : roiTagList) {
@@ -336,8 +332,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
                 XMLUtil.setAttributeIntValue(roiElement, "surface", computeROISurface(roi));
                 XMLUtil.setAttributeValue(roiElement, "file_and_folder", gdt.inputSequence.getFilename());
                 XMLUtil.setAttributeValue(roiElement, "folder", FileUtil.getDirectory(gdt.inputSequence.getFilename()));
-                XMLUtil.setAttributeValue(roiElement, "file",
-                        FileUtil.getFileName(gdt.inputSequence.getFilename(), true));
+                XMLUtil.setAttributeValue(roiElement, "file", FileUtil.getFileName(gdt.inputSequence.getFilename(), true));
                 XMLUtil.setAttributeValue(roiElement, "process_date", new Date().toString());
 
                 final ArrayList<String> tagList = getTagList(gdt.inputSequence, roi);
@@ -387,8 +382,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
         {
             // save input image with ROIs and detections.
 
-            final File withnessImageFile = new File(folder + FileUtil.separator + "save" + FileUtil.separator
-                    + inputSequenceFile.getName() + ".roi.detection.tif");
+            final File withnessImageFile = new File(folder + FileUtil.separator + "save" + FileUtil.separator + inputSequenceFile.getName() + ".roi.detection.tif");
 
             ThreadUtil.invokeNow(() -> {
                 if (exportOriginalImageWithROIAndDetection.isSelected()) {
@@ -405,7 +399,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
                         Saver.saveImage(IcyBufferedImage.createFrom(renderedImage), withnessImageFile, true);
                     }
                     catch (final InterruptedException | FormatException | IOException e) {
-                        IcyExceptionHandler.showErrorMessage(e, true);
+                        IcyLogger.error(this.getClass(), e);
                     }
 
                     viewer.close();
@@ -415,14 +409,12 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
 
         // save image with final detection
         if (exportBinaryImage.isSelected()) {
-            final File binaryImageFile = new File(folder + FileUtil.separator + "save" + FileUtil.separator
-                    + inputSequenceFile.getName() + ".roi.binary.tif");
+            final File binaryImageFile = new File(folder + FileUtil.separator + "save" + FileUtil.separator + inputSequenceFile.getName() + ".roi.binary.tif");
 
             // System.out.println("debug: into export binary");
 
             ThreadUtil.invokeNow(() -> {
                 try {
-
                     // System.out.println("debug: into export binary run");
 
                     final Sequence ch = SequenceUtil.extractChannel(gdt.inputSequence, 0);
@@ -462,12 +454,12 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
 
                 }
                 catch (final Exception e) {
-                    IcyExceptionHandler.showErrorMessage(e, true);
+                    IcyLogger.error(this.getClass(), e);
                     try {
                         throw e;
                     }
                     catch (final Exception e1) {
-                        IcyExceptionHandler.showErrorMessage(e1, true);
+                        IcyLogger.error(this.getClass(), e1);
                     }
                 }
             });
@@ -496,12 +488,11 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
         if (exportSwimmingPoolCheckBox.isSelected()) {
             try {
                 final DetectionResult detectionResultConverted = convertDetectionToDetectionResult(gdt.detectionResult, gdt.inputSequence);
-                final SwimmingObject swimmingObject = new SwimmingObject(detectionResultConverted,
-                        "detections of " + gdt.inputSequence.getName()); // inputSequenceFile.getName()
+                final SwimmingObject swimmingObject = new SwimmingObject(detectionResultConverted, "detections of " + gdt.inputSequence.getName()); // inputSequenceFile.getName()
                 Icy.getMainInterface().getSwimmingPool().add(swimmingObject);
             }
             catch (final Exception e) {
-                System.out.println("Error while creating detection object for swimming pool: is the plugin nchenouard.tracker installed ?");
+                IcyLogger.error(this.getClass(), e, "Error while creating detection object for swimming pool: is the plugin nchenouard.tracker installed ?");
             }
         }
 
@@ -523,8 +514,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
     }
 
     // FIXME : sequence should be removed from detection results.
-    private DetectionResult convertDetectionToDetectionResult(final ArrayList<DetectionSpot> detections, final Sequence sequence) {
-
+    private @NotNull DetectionResult convertDetectionToDetectionResult(final @NotNull ArrayList<DetectionSpot> detections, final Sequence sequence) {
         final DetectionResult detectionResult = new DetectionResult();
         for (final DetectionSpot detectionSpot : detections) {
             final Spot spot = new Spot(
@@ -544,8 +534,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
         return detectionResult;
     }
 
-    private ArrayList<plugins.nchenouard.spot.Point3D> convertToChenouardPoint3D(final ArrayList<Point3D> inputList) {
-
+    private @NotNull ArrayList<plugins.nchenouard.spot.Point3D> convertToChenouardPoint3D(final @NotNull ArrayList<Point3D> inputList) {
         final ArrayList<plugins.nchenouard.spot.Point3D> returnList = new ArrayList<>();
         for (final Point3D inputPoint : inputList) {
             returnList.add(new plugins.nchenouard.spot.Point3D(inputPoint.x, inputPoint.y, inputPoint.z));
@@ -556,11 +545,11 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
     /**
      * workaround: the loadworkbook from XLSUtil has some problem because of an extra write wish prevent me from adding data
      **/
-    private WritableWorkbook loadWorkbook(final File file) throws IOException, BiffException {
+    private Workbook loadWorkbook(final @NotNull File file) throws IOException {
         if (!file.exists())
-            return XLSUtil.createWorkbook(file);
+            return XLSXUtil.loadWorkbookForWrite(file);
 
-        return Workbook.createWorkbook(file, Workbook.getWorkbook(file));
+        return XLSXUtil.createWorkbook();
     }
 
     /**
@@ -568,7 +557,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
      */
     void saveToXLS(final File xlsFile, final GlobalDetectionToken gdt, final boolean appendToExistingFile) throws InterruptedException {
         // XLSUtil xlsUtil = null;
-        WritableWorkbook workbook = null;
+        Workbook workbook = null;
         // XlsManager xlsManager = null;
         try {
             if (appendToExistingFile) {
@@ -577,24 +566,20 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
                 // xlsManager = new XlsManager( xlsFile , true ); // append
             }
             else {
+                xlsFile.delete();
                 // xlsManager = new XlsManager( xlsFile ); // destroy previous file
-                workbook = XLSUtil.createWorkbook(xlsFile);
+                workbook = XLSXUtil.createWorkbook();
             }
         }
         catch (final IOException e) {
-            new FailedAnnounceFrame("Cannot write the XLS file ! Is it already open in another application ?");
-            IcyExceptionHandler.showErrorMessage(e, true);
+            IcyLogger.error(this.getClass(), e, "Cannot write the XLS file ! Is it already open in another application ?");
             return;
-        }
-        catch (final BiffException e) {
-            IcyExceptionHandler.showErrorMessage(e, true);
         }
 
         int row;
 
-        assert workbook != null;
-        final int indexPage = workbook.getSheetNames().length; // to avoid having the same name of page else it erase the existing one
-        final WritableSheet page = XLSUtil.createNewPage(workbook, indexPage + "-" + gdt.inputSequence.getName());
+        final int indexPage = workbook.getNumberOfSheets(); // to avoid having the same name of page else it erase the existing one
+        final Sheet page = XLSXUtil.createNewPage(workbook, indexPage + "-" + gdt.inputSequence.getName());
 
         // xlsManager.createNewPage( FileUtil.getFileName( gdt.inputSequence.getName() ) );
 
@@ -602,16 +587,16 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
 
         // date
 
-        XLSUtil.setCellString(page, 0, 0, "Date of XLS page:");
+        XLSXUtil.setCellString(page, 0, 0, "Date of XLS page:");
         // xlsManager.setLabel( 0 , 0 , "Date of XLS page:" );
-        XLSUtil.setCellString(page, 0, 1, new Date().toString());
+        XLSXUtil.setCellString(page, 0, 1, new Date().toString());
         // xlsManager.setLabel( 0 , 1 , new Date().toString() );
 
         // input
         {
-            row = page.getRows();
+            row = page.getLastRowNum();
             // row = xlsManager.getExcelPage().getRows();
-            XLSUtil.setCellString(page, 0, row, "Input");
+            XLSXUtil.setCellString(page, 0, row, "Input");
             // xlsManager.setLabel( 0 , row , "Input" );
             spotDetector.inputPanel.inputDetection.saveXLS(page, gdt);
         }
@@ -619,9 +604,9 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
 
         // pre processor
         {
-            row = page.getRows();
+            row = page.getLastRowNum();
             // row = xlsManager.getExcelPage().getRows();
-            XLSUtil.setCellString(page, 0, row, "Pre processor");
+            XLSXUtil.setCellString(page, 0, row, "Pre processor");
             // xlsManager.setLabel( 0 , row , "Pre processor" );
             spotDetector.preProcessPanel.preProcessorDetection.saveXLS(page, gdt);
         }
@@ -629,9 +614,9 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
 
         // Detector
         {
-            row = page.getRows();
+            row = page.getLastRowNum();
             // row = xlsManager.getExcelPage().getRows();
-            XLSUtil.setCellString(page, 0, row, "Detector");
+            XLSXUtil.setCellString(page, 0, row, "Detector");
             // xlsManager.setLabel( 0 , row , "Detector" );
             spotDetector.detectorPanel.detectorDetection.saveXLS(page, gdt);
         }
@@ -639,9 +624,9 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
 
         // Region of interest
         {
-            row = page.getRows();
+            row = page.getLastRowNum();
             // row = xlsManager.getExcelPage().getRows();
-            XLSUtil.setCellString(page, 0, row, "Region of interest");
+            XLSXUtil.setCellString(page, 0, row, "Region of interest");
             // xlsManager.setLabel( 0 , row , "Region of interest" );
             spotDetector.roiPanel.roiDetection.saveXLS(page, gdt);
         }
@@ -660,18 +645,17 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
         // Save file
 
         try {
-            XLSUtil.saveAndClose(workbook);
+            XLSXUtil.saveAndClose(workbook, xlsFile);
         }
-        catch (final WriteException | IOException e) {
-            new FailedAnnounceFrame("Cannot write the XLS file ! Is it already open in another application ?");
-            IcyExceptionHandler.showErrorMessage(e, true);
+        catch (final IOException e) {
+            IcyLogger.error(this.getClass(), e, "Cannot write the XLS file ! Is it already open in another application ?");
         }
 
         // xlsManager.SaveAndClose();
     }
 
-    private void addXLSSeparator(final WritableSheet page) {
-        final int row = page.getRows();
-        XLSUtil.setCellString(page, 0, row, "------------");
+    private void addXLSSeparator(final @NotNull Sheet page) {
+        final int row = page.getLastRowNum();
+        XLSXUtil.setCellString(page, 0, row, "------------");
     }
 }

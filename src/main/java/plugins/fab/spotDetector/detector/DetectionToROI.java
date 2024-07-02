@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,16 +18,18 @@
 
 package plugins.fab.spotDetector.detector;
 
-import icy.roi.BooleanMask3D;
-import icy.roi.ROI;
-import icy.system.IcyExceptionHandler;
-import icy.system.SystemUtil;
-import icy.system.thread.Processor;
-import icy.type.point.Point5D;
+import org.bioimageanalysis.extension.kernel.roi.roi2d.ROI2DArea;
+import org.bioimageanalysis.extension.kernel.roi.roi3d.ROI3DArea;
+import org.bioimageanalysis.icy.common.geom.point.Point3D;
+import org.bioimageanalysis.icy.common.geom.point.Point5D;
+import org.bioimageanalysis.icy.model.roi.ROI;
+import org.bioimageanalysis.icy.model.roi.mask.BooleanMask3D;
+import org.bioimageanalysis.icy.system.SystemUtil;
+import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import org.bioimageanalysis.icy.system.thread.Processor;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.DetectionSpot;
-import plugins.fab.spotDetector.Point3D;
-import plugins.kernel.roi.roi2d.ROI2DArea;
-import plugins.kernel.roi.roi3d.ROI3DArea;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +42,7 @@ public class DetectionToROI {
         final List<DetectionSpot> spots;
         final int baseIndex;
 
+        @Contract(pure = true)
         public DetectionToROIConverter(final List<DetectionSpot> spots, final int baseIndex) {
             super();
 
@@ -58,10 +61,10 @@ public class DetectionToROI {
                 if (size == 0)
                     continue;
 
-                final icy.type.point.Point3D[] p3ds = new icy.type.point.Point3D[size];
+                final Point3D[] p3ds = new Point3D[size];
                 for (int p = 0; p < size; p++) {
-                    final Point3D pt = spot.points.get(p);
-                    p3ds[p] = new icy.type.point.Point3D.Double(pt.x, pt.y, pt.z);
+                    final plugins.fab.spotDetector.Point3D pt = spot.points.get(p);
+                    p3ds[p] = new Point3D.Double(pt.x, pt.y, pt.z);
                 }
 
                 final BooleanMask3D bm3d = new BooleanMask3D(p3ds);
@@ -92,15 +95,15 @@ public class DetectionToROI {
         }
     }
 
-    public static ArrayList<ROI> convertDetectionToROI(final ArrayList<DetectionSpot> detectionList) {
+    @SuppressWarnings("resource")
+    public static @NotNull ArrayList<ROI> convertDetectionToROI(final @NotNull ArrayList<DetectionSpot> detectionList) {
         final Processor processor = new Processor(Math.max(256, detectionList.size()), SystemUtil.getNumberOfCPUs() * 2);
         final List<Future<List<ROI>>> tasks = new ArrayList<>();
         final int size = detectionList.size();
         final int groupsSize = 1000;
 
         for (int i = 0; i < detectionList.size(); i += groupsSize)
-            tasks.add(processor
-                    .submit(new DetectionToROIConverter(detectionList.subList(i, Math.min(i + groupsSize, size)), i)));
+            tasks.add(processor.submit(new DetectionToROIConverter(detectionList.subList(i, Math.min(i + groupsSize, size)), i)));
 
         final ArrayList<ROI> result = new ArrayList<>();
         for (final Future<List<ROI>> task : tasks) {
@@ -111,7 +114,7 @@ public class DetectionToROI {
                 break;
             }
             catch (final ExecutionException e) {
-                IcyExceptionHandler.showErrorMessage(e.getCause(), true);
+                IcyLogger.error(DetectionToROI.class, e);
                 break;
             }
         }

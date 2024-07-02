@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,8 +18,9 @@
 
 package plugins.fab.spotDetector.detector;
 
-import icy.gui.util.ComponentUtil;
-import icy.gui.util.GuiUtil;
+import org.bioimageanalysis.icy.gui.GuiUtil;
+import org.bioimageanalysis.icy.gui.component.ComponentUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.CaretEvent;
@@ -34,7 +35,6 @@ public class UDWTScale implements CaretListener {
     public int scaleNumber;
 
     public UDWTScale(final int scaleNumber, final boolean enabled, final double threshold) {
-
         this.scaleNumber = scaleNumber;
 
         enabledCheckBox = new JCheckBox("Scale " + scaleNumber, enabled);
@@ -72,8 +72,11 @@ public class UDWTScale implements CaretListener {
         scalePanel = new JPanel();
         scalePanel.setLayout(new BoxLayout(scalePanel, BoxLayout.PAGE_AXIS));
         scalePanel.add(GuiUtil.createLineBoxPanel(
-                enabledCheckBox, //thresholdLabel ,
-                sensitivityTextField, Box.createHorizontalStrut(20), descriptionLabel, Box.createHorizontalGlue()));
+                        enabledCheckBox, //thresholdLabel ,
+                        sensitivityTextField,
+                        Box.createHorizontalStrut(20),
+                        descriptionLabel, Box.createHorizontalGlue()
+                ));
 
 
         //xLax.createVerticalGlue();
@@ -85,7 +88,6 @@ public class UDWTScale implements CaretListener {
 
         //GuiUtil.createLineBoxPanel( enabledCheckBox , thresholdLabel , thresholdTextField , errorLabel );
         //scalePanel = GuiUtil.createLineBoxPanel( enabledCheckBox , thresholdLabel , thresholdTextField , errorLabel , Box.gu);
-
     }
 
     public JPanel getPanel() {
@@ -117,7 +119,6 @@ public class UDWTScale implements CaretListener {
 
     @Override
     public void caretUpdate(final CaretEvent e) {
-
         getThreshold();
     }
 
@@ -125,8 +126,7 @@ public class UDWTScale implements CaretListener {
         return enabledCheckBox.isSelected();
     }
 
-    public static JPanel getHeaderPanel() {
-
+    public static @NotNull JPanel getHeaderPanel() {
         final JPanel headerPanel = new JPanel();
 
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.PAGE_AXIS));
@@ -140,8 +140,6 @@ public class UDWTScale implements CaretListener {
 
         headerPanel.add(GuiUtil.createLineBoxPanel(scaleLabel, thresholdLabel, objectSizeLabel, Box.createHorizontalGlue()));
 
-
         return headerPanel;
     }
-
 }

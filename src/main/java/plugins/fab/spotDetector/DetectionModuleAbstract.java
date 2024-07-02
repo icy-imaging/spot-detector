@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,9 +18,9 @@
 
 package plugins.fab.spotDetector;
 
-import icy.plugin.abstract_.Plugin;
-import icy.plugin.interface_.PluginLibrary;
-import jxl.write.WritableSheet;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.bioimageanalysis.icy.extension.plugin.abstract_.Plugin;
+import org.bioimageanalysis.icy.extension.plugin.interface_.PluginLibrary;
 
 import javax.swing.*;
 
@@ -33,5 +33,5 @@ public abstract class DetectionModuleAbstract extends Plugin implements PluginLi
 
     public abstract void process(GlobalDetectionToken gdt) throws InterruptedException;
 
-    public abstract void saveXLS(WritableSheet page, GlobalDetectionToken gdt) throws InterruptedException;
+    public abstract void saveXLS(Sheet page, GlobalDetectionToken gdt) throws InterruptedException;
 }

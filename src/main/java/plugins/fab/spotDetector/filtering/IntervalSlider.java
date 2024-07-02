@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -17,6 +17,8 @@
  */
 
 package plugins.fab.spotDetector.filtering;
+
+import org.bioimageanalysis.icy.system.logging.IcyLogger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,27 +42,21 @@ public class IntervalSlider extends JPanel implements MouseListener, MouseMotion
     DRAGGING displayMoveState = DRAGGING.NOT_DRAGGING;
 
     public IntervalSlider(final int min, final int max) {
-
         this.setPreferredSize(new Dimension(0, 20));
         this.min = min;
         this.max = max;
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
-
     }
 
     public IntervalSlider(final int min, final int max, final int lowValue, final int highValue) {
-
         this(min, max);
         this.currentLowValue = lowValue;
         this.currentHighValue = highValue;
-
     }
-
 
     @Override
     protected void paintComponent(final Graphics g) {
-
         super.paintComponent(g);
 
         g.setColor(Color.black);
@@ -88,7 +84,6 @@ public class IntervalSlider extends JPanel implements MouseListener, MouseMotion
             g.drawRect((int) lowx - 1, 1, 1, getHeight() - 3);
             g.drawRect((int) lowx - 1, 1, 5, 1);
             g.drawRect((int) lowx - 1, getHeight() - 3, 5, 1);
-
         }
 
         // right edge
@@ -103,7 +98,6 @@ public class IntervalSlider extends JPanel implements MouseListener, MouseMotion
             g.drawRect((int) highx - 1, 1, 1, getHeight() - 3);
             g.drawRect((int) highx - 6, 1, 5, 1);
             g.drawRect((int) highx - 6, getHeight() - 3, 5, 1);
-
         }
 
         if (draggingState == DRAGGING.ALL || displayMoveState == DRAGGING.ALL) {
@@ -116,11 +110,8 @@ public class IntervalSlider extends JPanel implements MouseListener, MouseMotion
             g.drawRect((int) highx - 6, getHeight() - 3, 5, 1);
             g.fillOval((int) ((highx + lowx) / 2) - 3, 4, 10, 10);
 
-
             //g.drawRect( (int)lowx-1 ,  getHeight()/2 , (int)( highx-lowx ), 1 );
         }
-
-
     }
 
     private double getXForValue(final double value) {
@@ -143,7 +134,7 @@ public class IntervalSlider extends JPanel implements MouseListener, MouseMotion
 
     public void setCurrentHighValue(final int value) {
         if (value >= currentLowValue) {
-            System.out.println(value);
+            IcyLogger.debug(this.getClass(), "Current value: " + value);
             currentHighValue = value;
             repaint();
             fireAction();
@@ -189,7 +180,6 @@ public class IntervalSlider extends JPanel implements MouseListener, MouseMotion
     }
 
     private void updateBounds(final MouseEvent e) {
-
         draggingState = computeDraggingState(e);
 
         final double mouseX = e.getX();
@@ -211,9 +201,7 @@ public class IntervalSlider extends JPanel implements MouseListener, MouseMotion
             // ensure that the interval size will not decrease
             if (currentHighValue > max) currentLowValue -= currentHighValue - max;
             if (currentLowValue < min) currentHighValue += min - currentLowValue;
-
         }
-
 
         if (currentLowValue < min) currentLowValue = min;
         if (currentHighValue > max) currentHighValue = max;
@@ -221,7 +209,6 @@ public class IntervalSlider extends JPanel implements MouseListener, MouseMotion
         repaint();
 
         fireAction();
-
     }
 
     ArrayList<ActionListener> actionListenerList = new ArrayList<>();
@@ -248,6 +235,7 @@ public class IntervalSlider extends JPanel implements MouseListener, MouseMotion
 
     @Override
     public void mouseEntered(final MouseEvent e) {
+        //
     }
 
     @Override
@@ -279,5 +267,4 @@ public class IntervalSlider extends JPanel implements MouseListener, MouseMotion
         displayMoveState = computeDraggingState(e);
         repaint();
     }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,18 +18,18 @@
 
 package plugins.fab.spotDetector.output;
 
-import jxl.write.WritableSheet;
+import org.apache.poi.ss.usermodel.Sheet;
 import plugins.fab.spotDetector.DetectionModuleAbstract;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 
 public class OutPutDetectionAbstract extends DetectionModuleAbstract {
-
     @Override
     public void process(final GlobalDetectionToken gdt) {
+        //
     }
 
     @Override
-    public void saveXLS(final WritableSheet page, final GlobalDetectionToken gdt) {
+    public void saveXLS(final Sheet page, final GlobalDetectionToken gdt) {
+        //
     }
-
 }

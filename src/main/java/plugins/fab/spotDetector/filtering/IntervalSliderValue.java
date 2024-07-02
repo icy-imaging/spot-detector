@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,9 +18,10 @@
 
 package plugins.fab.spotDetector.filtering;
 
-import icy.gui.util.ComponentUtil;
-import icy.gui.util.GuiUtil;
-import icy.system.IcyExceptionHandler;
+import org.bioimageanalysis.icy.gui.GuiUtil;
+import org.bioimageanalysis.icy.gui.component.ComponentUtil;
+import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -34,7 +35,6 @@ public class IntervalSliderValue extends JPanel implements ActionListener {
     JLabel titleLabel = new JLabel("", JLabel.CENTER);
 
     public IntervalSliderValue(final int min, final int max, final int lowValue, final int highValue, final String title) {
-
         intervalSlider = new IntervalSlider(min, max, lowValue, highValue);
         intervalSlider.addActionListener(this);
 
@@ -52,12 +52,10 @@ public class IntervalSliderValue extends JPanel implements ActionListener {
         this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
         this.add(GuiUtil.createLineBoxPanel(titleLabel));
         this.add(GuiUtil.createLineBoxPanel(minTextField, intervalSlider, maxTextField));
-
     }
 
     @Override
-    public void actionPerformed(final ActionEvent e) {
-
+    public void actionPerformed(final @NotNull ActionEvent e) {
         if (e.getSource() == intervalSlider) {
             minTextField.setText("" + intervalSlider.getCurrentLowValue());
             maxTextField.setText("" + intervalSlider.getCurrentHighValue());
@@ -69,7 +67,7 @@ public class IntervalSliderValue extends JPanel implements ActionListener {
                 intervalSlider.setCurrentLowValue(min);
             }
             catch (final Exception e1) {
-                IcyExceptionHandler.showErrorMessage(e1, true);
+                IcyLogger.error(this.getClass(), e1);
             }
         }
 
@@ -79,7 +77,7 @@ public class IntervalSliderValue extends JPanel implements ActionListener {
                 intervalSlider.setCurrentHighValue(max);
             }
             catch (final Exception e1) {
-                IcyExceptionHandler.showErrorMessage(e1, true);
+                IcyLogger.error(this.getClass(), e1);
             }
         }
 
@@ -108,5 +106,4 @@ public class IntervalSliderValue extends JPanel implements ActionListener {
     public int getCurrentHighValue() {
         return intervalSlider.currentHighValue;
     }
-
 }

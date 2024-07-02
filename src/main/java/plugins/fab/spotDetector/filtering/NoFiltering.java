@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,8 +18,8 @@
 
 package plugins.fab.spotDetector.filtering;
 
-import icy.gui.util.GuiUtil;
-import jxl.write.WritableSheet;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.bioimageanalysis.icy.gui.GuiUtil;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 
 import javax.swing.*;
@@ -28,7 +28,6 @@ import javax.swing.*;
  * @author Fabrice de Chaumont
  */
 public class NoFiltering extends FilteringDetectionAbstract {
-
     public NoFiltering() {
         getPanel().setLayout(new BoxLayout(getPanel(), BoxLayout.PAGE_AXIS));
 
@@ -40,9 +39,11 @@ public class NoFiltering extends FilteringDetectionAbstract {
 
     @Override
     public void process(final GlobalDetectionToken gdt) {
+        //
     }
 
     @Override
-    public void saveXLS(final WritableSheet page, final GlobalDetectionToken gdt) {
+    public void saveXLS(final Sheet page, final GlobalDetectionToken gdt) {
+        //
     }
 }

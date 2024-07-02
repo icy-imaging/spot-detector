@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2023. Institut Pasteur.
+ * Copyright (c) 2010-2024. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -18,18 +18,19 @@
 
 package plugins.fab.spotDetector.roi;
 
-import icy.gui.frame.progress.FailedAnnounceFrame;
-import icy.gui.main.GlobalSequenceListener;
-import icy.gui.util.GuiUtil;
-import icy.main.Icy;
-import icy.roi.ROI;
-import icy.roi.ROI2D;
-import icy.roi.ROI3D;
-import icy.sequence.Sequence;
-import jxl.write.WritableSheet;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.bioimageanalysis.extension.kernel.roi.roi2d.ROI2DRectangle;
+import org.bioimageanalysis.icy.Icy;
+import org.bioimageanalysis.icy.gui.GuiUtil;
+import org.bioimageanalysis.icy.gui.frame.progress.FailedAnnounceFrame;
+import org.bioimageanalysis.icy.gui.listener.GlobalSequenceListener;
+import org.bioimageanalysis.icy.model.roi.ROI;
+import org.bioimageanalysis.icy.model.roi.ROI2D;
+import org.bioimageanalysis.icy.model.roi.ROI3D;
+import org.bioimageanalysis.icy.model.sequence.Sequence;
+import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.DetectionSpot;
 import plugins.fab.spotDetector.GlobalDetectionToken;
-import plugins.kernel.roi.roi2d.ROI2DRectangle;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -84,7 +85,7 @@ public class ROIFixedFromSequence extends ROIDetectionAbstract implements Action
              */
             @Override
             public void sequenceClosed(final Sequence sequence) {
-
+                //
             }
         });
     }
@@ -102,7 +103,7 @@ public class ROIFixedFromSequence extends ROIDetectionAbstract implements Action
     }
 
     @Override
-    public void process(final GlobalDetectionToken gdt) {
+    public void process(final @NotNull GlobalDetectionToken gdt) {
         final ArrayList<ROI> roiArrayList;
 
         gdt.inputSequence.removeAllROI();
@@ -118,18 +119,14 @@ public class ROIFixedFromSequence extends ROIDetectionAbstract implements Action
         for (final ROI roi : roiArrayList) {
             if (roi.getColor().getRed() == 0 && roi.getColor().getGreen() == 0 && roi.getColor().getBlue() == 0) // roi is black
             {
-                if (roi instanceof ROI2D) {
-                    final ROI2D roi2d = (ROI2D) roi;
-
+                if (roi instanceof final ROI2D roi2d) {
                     for (final DetectionSpot detectionSpot : cloneDetectionList) {
                         if (roi2d.contains(detectionSpot.getMassCenter().x, detectionSpot.getMassCenter().y)) {
                             gdt.detectionResult.remove(detectionSpot);
                         }
                     }
                 }
-                else if (roi instanceof ROI3D) {
-                    final ROI3D roi3d = (ROI3D) roi;
-
+                else if (roi instanceof final ROI3D roi3d) {
                     for (final DetectionSpot detectionSpot : cloneDetectionList) {
                         if (roi3d.contains(detectionSpot.getMassCenter().x, detectionSpot.getMassCenter().y, detectionSpot.getMassCenter().z)) {
                             gdt.detectionResult.remove(detectionSpot);
@@ -150,25 +147,20 @@ public class ROIFixedFromSequence extends ROIDetectionAbstract implements Action
             ROI2Detection.put(new ROI2DRectangle(gdt.inputSequence.getBounds2D()), value);
         }
         else { // there is ROI is the sequence
-
             // setup hashMap
             for (final ROI roi : roiArrayList)
                 ROI2Detection.put(roi, new ArrayList<>());
 
             // fill hashMap
             for (final ROI roi : roiArrayList) {
-                if (roi instanceof ROI2D) {
-                    final ROI2D roi2d = (ROI2D) roi;
-
+                if (roi instanceof final ROI2D roi2d) {
                     for (final DetectionSpot spot : gdt.detectionResult) {
                         if (roi2d.contains(spot.getMassCenter().x, spot.getMassCenter().y)) {
                             ROI2Detection.get(roi).add(spot);
                         }
                     }
                 }
-                else if (roi instanceof ROI3D) {
-                    final ROI3D roi3d = (ROI3D) roi;
-
+                else if (roi instanceof final ROI3D roi3d) {
                     for (final DetectionSpot spot : gdt.detectionResult) {
                         if (roi3d.contains(spot.getMassCenter().x, spot.getMassCenter().y, spot.getMassCenter().z)) {
                             ROI2Detection.get(roi).add(spot);
@@ -212,7 +204,7 @@ public class ROIFixedFromSequence extends ROIDetectionAbstract implements Action
     }
 
     @Override
-    public void saveXLS(final WritableSheet page, final GlobalDetectionToken gdt) throws InterruptedException {
+    public void saveXLS(final Sheet page, final GlobalDetectionToken gdt) throws InterruptedException {
         ROI_XLS_Common_Saver.saveXLS(page, gdt, "ROI From Sequence module");
     }
 }
