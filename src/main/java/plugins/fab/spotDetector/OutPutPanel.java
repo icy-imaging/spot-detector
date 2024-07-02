@@ -466,7 +466,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
 
         }
 
-        XLSFile = new File(folder + FileUtil.separator + "save" + FileUtil.separator + inputSequenceFile.getName() + ".xls");
+        XLSFile = new File(folder + FileUtil.separator + "save" + FileUtil.separator + inputSequenceFile.getName() + ".xlsx");
 
         // WritableImage writableRenderedImage = new
 
