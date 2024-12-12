@@ -20,11 +20,10 @@ package plugins.fab.spotDetector;
 
 import org.apache.poi.ss.usermodel.Sheet;
 import org.bioimageanalysis.icy.extension.plugin.abstract_.Plugin;
-import org.bioimageanalysis.icy.extension.plugin.interface_.PluginLibrary;
 
 import javax.swing.*;
 
-public abstract class DetectionModuleAbstract extends Plugin implements PluginLibrary {
+public abstract class DetectionModuleAbstract extends Plugin {
     JPanel mainPanel = new JPanel();
 
     public JPanel getPanel() {

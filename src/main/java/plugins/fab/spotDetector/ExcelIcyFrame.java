@@ -32,7 +32,7 @@ public class ExcelIcyFrame {
      * should be a XlsManager with a multi page support...
      * copy / paste and so on...
      *
-     * @param name          name of the frame
+     * @param name  name of the frame
      * @param sheet excel sheet to display
      */
     public ExcelIcyFrame(final String name, final Sheet sheet) {

@@ -18,7 +18,7 @@
 
 package plugins.fab.spotDetector;
 
-import javax.swing.JPanel;
+import javax.swing.*;
 
 public abstract class Saver {
     abstract JPanel getPanel();

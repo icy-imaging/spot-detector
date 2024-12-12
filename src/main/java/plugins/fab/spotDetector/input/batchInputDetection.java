@@ -127,7 +127,7 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
     }
 
     public void scanDir(final @NotNull File directory) {
-        IcyLogger.debug(this.getClass(), "Scanning directory: " + directory.getAbsolutePath() );
+        IcyLogger.debug(this.getClass(), "Scanning directory: " + directory.getAbsolutePath());
 
         final List<File> listImages;
 

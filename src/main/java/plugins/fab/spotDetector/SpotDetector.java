@@ -53,7 +53,7 @@ import java.util.List;
  * @author Fabrice de Chaumont
  */
 @IcyPluginName("Spot Detector")
-@IcyPluginIcon(path = "/spot-detector.png")
+@IcyPluginIcon(path = "/plugins/fab/spotDetector/detector/spot-detector.png")
 public class SpotDetector extends PluginActionable implements TreeSelectionListener, ActionListener, IcyFrameListener {
     IcyFrame icyFrame;
     private JTree tree;

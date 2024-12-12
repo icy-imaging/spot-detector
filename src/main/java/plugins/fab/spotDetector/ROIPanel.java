@@ -22,7 +22,6 @@ import org.bioimageanalysis.icy.extension.plugin.PluginDescriptor;
 import org.bioimageanalysis.icy.extension.plugin.PluginLoader;
 import org.bioimageanalysis.icy.extension.plugin.abstract_.Plugin;
 import org.bioimageanalysis.icy.model.roi.ROI;
-import org.bioimageanalysis.icy.system.IcyExceptionHandler;
 import org.bioimageanalysis.icy.system.logging.IcyLogger;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.roi.ROIDetectionAbstract;

@@ -72,11 +72,11 @@ public class UDWTScale implements CaretListener {
         scalePanel = new JPanel();
         scalePanel.setLayout(new BoxLayout(scalePanel, BoxLayout.PAGE_AXIS));
         scalePanel.add(GuiUtil.createLineBoxPanel(
-                        enabledCheckBox, //thresholdLabel ,
-                        sensitivityTextField,
-                        Box.createHorizontalStrut(20),
-                        descriptionLabel, Box.createHorizontalGlue()
-                ));
+                enabledCheckBox, //thresholdLabel ,
+                sensitivityTextField,
+                Box.createHorizontalStrut(20),
+                descriptionLabel, Box.createHorizontalGlue()
+        ));
 
 
         //xLax.createVerticalGlue();

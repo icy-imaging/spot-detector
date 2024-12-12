@@ -27,7 +27,6 @@ import org.bioimageanalysis.icy.model.roi.mask.BooleanMask3D;
 import org.bioimageanalysis.icy.system.SystemUtil;
 import org.bioimageanalysis.icy.system.logging.IcyLogger;
 import org.bioimageanalysis.icy.system.thread.Processor;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.DetectionSpot;
 
@@ -38,20 +37,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class DetectionToROI {
-    static class DetectionToROIConverter implements Callable<List<ROI>> {
-        final List<DetectionSpot> spots;
-        final int baseIndex;
-
-        @Contract(pure = true)
-        public DetectionToROIConverter(final List<DetectionSpot> spots, final int baseIndex) {
-            super();
-
-            this.spots = spots;
-            this.baseIndex = baseIndex;
-        }
-
+    record DetectionToROIConverter(List<DetectionSpot> spots, int baseIndex) implements Callable<List<ROI>> {
         @Override
-        public List<ROI> call() {
+        public @NotNull List<ROI> call() {
             final List<ROI> result = new ArrayList<>(spots.size());
 
             for (int s = 0; s < spots.size(); s++) {

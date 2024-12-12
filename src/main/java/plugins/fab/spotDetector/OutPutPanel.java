@@ -557,7 +557,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
      */
     void saveToXLS(final File xlsFile, final GlobalDetectionToken gdt, final boolean appendToExistingFile) throws InterruptedException {
         // XLSUtil xlsUtil = null;
-        Workbook workbook = null;
+        final Workbook workbook; // = null;
         // XlsManager xlsManager = null;
         try {
             if (appendToExistingFile) {

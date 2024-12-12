@@ -7,11 +7,11 @@
     <parent>
         <artifactId>pom-icy</artifactId>
         <groupId>org.bioimageanalysis.icy</groupId>
-        <version>3.0.0-a.1</version>
+        <version>3.0.0-a.3</version>
     </parent>
 
     <artifactId>spot-detector</artifactId>
-    <version>2.0.0-a.1</version>
+    <version>2.0.0-a.2</version>
 
     <name>Spot Detector</name>
     <description>
@@ -21,11 +21,11 @@
         – Depending on objective, spots can be nuclei, nucleus or cell
         – Versatile input: sequence or batch of file.
         – Detects spot in specific band/channel.
-        – Multi band labeling: automaticaly creates ROIs from one band and count in the same or an other band.
+        – Multi band labeling: automatically creates ROIs from one band and count in the same or an other band.
         – Filters detection by size.
         – Sort detection by ROIs
         – Output data in XLS Excel files: number of detection by ROIs, and each detection location and size.
-        – Outputs withness image with ROIs and detection painted on it.
+        – Outputs witness image with ROIs and detection painted on it.
         – Outputs binary detection image.
         – Displays detections
         – Displays tags
@@ -61,11 +61,4 @@
             <artifactId>vecmath</artifactId>
         </dependency>
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>icy</id>
-            <url>https://nexus-icy.pasteur.cloud/repository/icy/</url>
-        </repository>
-    </repositories>
 </project>
