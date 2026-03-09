@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2024. Institut Pasteur.
+ * Copyright (c) 2010-2026. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -86,7 +86,7 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
         gdt.addGlobalDetectionTokenListener(this);
 
         if (!processFileToProcessArrayList.isEmpty()) {
-            final String path = processFileToProcessArrayList.removeFirst().getAbsolutePath();
+            final String path = processFileToProcessArrayList.remove(0).getAbsolutePath();
             gdt.inputSequence = Loader.loadSequence(Loader.getSequenceFileImporter(path, true), path, 0, false);
         }
 

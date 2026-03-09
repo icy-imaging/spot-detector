@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2024. Institut Pasteur.
+ * Copyright (c) 2010-2026. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -201,7 +201,7 @@ public class UDWTWaveletDetector extends DetectorDetectionAbstract implements Ac
 
     private void removeScalePanel() {
         if (UDWTScaleArrayList.isEmpty()) return;
-        UDWTScaleArrayList.removeLast();
+        UDWTScaleArrayList.remove(UDWTScaleArrayList.size() - 1);
         rebuildScalePanel();
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2024. Institut Pasteur.
+ * Copyright (c) 2010-2026. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -20,7 +20,6 @@ package plugins.fab.spotDetector;
 
 import org.bioimageanalysis.icy.extension.plugin.PluginDescriptor;
 import org.bioimageanalysis.icy.extension.plugin.abstract_.PluginActionable;
-import org.bioimageanalysis.icy.extension.plugin.annotation_.IcyPluginIcon;
 import org.bioimageanalysis.icy.extension.plugin.annotation_.IcyPluginName;
 import org.bioimageanalysis.icy.gui.GuiUtil;
 import org.bioimageanalysis.icy.gui.frame.IcyFrame;
@@ -53,7 +52,6 @@ import java.util.List;
  * @author Fabrice de Chaumont
  */
 @IcyPluginName("Spot Detector")
-@IcyPluginIcon(path = "/plugins/fab/spotDetector/detector/spot-detector.png")
 public class SpotDetector extends PluginActionable implements TreeSelectionListener, ActionListener, IcyFrameListener {
     IcyFrame icyFrame;
     private JTree tree;

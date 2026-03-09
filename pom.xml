@@ -7,11 +7,11 @@
     <parent>
         <artifactId>pom-icy</artifactId>
         <groupId>org.bioimageanalysis.icy</groupId>
-        <version>3.0.0-a.4</version>
+        <version>3.0.0-a.5</version>
     </parent>
 
     <artifactId>spot-detector</artifactId>
-    <version>2.0.0-a.3</version>
+    <version>2.0.0-a.5</version>
 
     <name>Spot Detector</name>
     <description>
@@ -30,11 +30,77 @@
         – Displays detections
         – Displays tags
     </description>
+    <url>https://icy.bioimageanalysis.org/</url>
+    <inceptionYear>2011</inceptionYear>
+
+    <scm>
+        <url>https://gitlab.pasteur.fr/bia/icy/extensions/spot-detector</url>
+        <tag>v${project.version}</tag>
+    </scm>
+
+    <issueManagement>
+        <system>GitLab Issues</system>
+        <url>https://gitlab.pasteur.fr/bia/icy/extensions/spot-detector/-/issues</url>
+    </issueManagement>
+    <ciManagement>
+        <system>GitLab CI</system>
+        <url>https://gitlab.pasteur.fr/bia/icy/extensions/spot-detector/-/pipelines</url>
+    </ciManagement>
+
+    <organization>
+        <name>Institut Pasteur</name>
+        <url>https://www.pasteur.fr/</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>GNU LGPLv3</name>
+            <url>https://www.gnu.org/licenses/lgpl-3.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>tmusset</id>
+            <name>Thomas Musset</name>
+            <organization>Institut Pasteur</organization>
+            <organizationUrl>https://pasteur.fr</organizationUrl>
+            <url>https://icy.bioimageanalysis.org/author/tmusset/</url>
+        </developer>
+    </developers>
+
+    <contributors>
+        <contributor>
+            <name>Fabrice de Chaumont</name>
+            <roles>
+                <role>founder</role>
+            </roles>
+        </contributor>
+        <contributor>
+            <name>Stéphane Dallongeville</name>
+            <roles>
+                <role>founder</role>
+            </roles>
+        </contributor>
+    </contributors>
+
+    <mailingLists>
+        <mailingList>
+            <name>Icy</name>
+            <post>icy.team@pasteur.fr</post>
+        </mailingList>
+    </mailingLists>
+
+    <properties>
+        <license.licenseName>GNU LGPLv3</license.licenseName>
+        <license.copyrightOwners>Institut Pasteur</license.copyrightOwners>
+    </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.bioimageanalysis.icy</groupId>
-            <artifactId>kernel-extensions</artifactId>
+            <artifactId>kernel-extension</artifactId>
         </dependency>
         <dependency>
             <groupId>org.bioimageanalysis.icy</groupId>
@@ -56,9 +122,11 @@
             <groupId>org.bioimageanalysis.icy</groupId>
             <artifactId>roi-tagger</artifactId>
         </dependency>
+
         <dependency>
-            <groupId>org.bioimageanalysis.icy</groupId>
+            <groupId>javax.vecmath</groupId>
             <artifactId>vecmath</artifactId>
+            <version>1.5.2</version>
         </dependency>
     </dependencies>
 </project>
