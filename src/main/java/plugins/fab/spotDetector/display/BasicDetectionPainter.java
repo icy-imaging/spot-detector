@@ -18,13 +18,13 @@
 
 package plugins.fab.spotDetector.display;
 
-import org.bioimageanalysis.icy.gui.GraphicsUtil;
-import org.bioimageanalysis.icy.gui.canvas.Canvas2D;
-import org.bioimageanalysis.icy.gui.canvas.IcyCanvas;
-import org.bioimageanalysis.icy.gui.canvas.VtkCanvas;
-import org.bioimageanalysis.icy.model.overlay.Overlay;
-import org.bioimageanalysis.icy.model.roi.ROI;
-import org.bioimageanalysis.icy.model.sequence.Sequence;
+import fr.icy.gui.GraphicsUtil;
+import fr.icy.gui.canvas.Canvas2D;
+import fr.icy.gui.canvas.IcyCanvas;
+import fr.icy.gui.canvas.VtkCanvas;
+import fr.icy.model.overlay.Overlay;
+import fr.icy.model.roi.ROI;
+import fr.icy.model.sequence.Sequence;
 import org.jetbrains.annotations.Contract;
 import plugins.fab.spotDetector.DetectionSpot;
 import vtk.vtkActor;

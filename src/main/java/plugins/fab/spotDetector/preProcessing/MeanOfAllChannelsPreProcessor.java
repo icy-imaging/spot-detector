@@ -19,12 +19,12 @@
 package plugins.fab.spotDetector.preProcessing;
 
 import org.apache.poi.ss.usermodel.Sheet;
-import org.bioimageanalysis.icy.common.collection.array.Array1DUtil;
-import org.bioimageanalysis.icy.common.type.DataType;
-import org.bioimageanalysis.icy.gui.GuiUtil;
-import org.bioimageanalysis.icy.io.xls.XLSXUtil;
-import org.bioimageanalysis.icy.model.image.IcyBufferedImage;
-import org.bioimageanalysis.icy.model.sequence.Sequence;
+import fr.icy.common.collection.array.Array1DUtil;
+import fr.icy.common.type.DataType;
+import fr.icy.gui.GuiUtil;
+import fr.icy.io.xls.XLSXUtil;
+import fr.icy.model.image.IcyBufferedImage;
+import fr.icy.model.sequence.Sequence;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 

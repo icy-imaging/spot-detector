@@ -19,10 +19,10 @@
 package plugins.fab.spotDetector.roi;
 
 import org.apache.poi.ss.usermodel.Sheet;
-import org.bioimageanalysis.extension.kernel.roi.descriptor.measure.ROIInteriorDescriptor;
-import org.bioimageanalysis.icy.io.xls.XLSXUtil;
-import org.bioimageanalysis.icy.io.xml.XMLUtil;
-import org.bioimageanalysis.icy.model.roi.ROI;
+import fr.icy.extension.kernel.roi.descriptor.measure.ROIInteriorDescriptor;
+import fr.icy.io.xls.XLSXUtil;
+import fr.icy.io.xml.XMLUtil;
+import fr.icy.model.roi.ROI;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

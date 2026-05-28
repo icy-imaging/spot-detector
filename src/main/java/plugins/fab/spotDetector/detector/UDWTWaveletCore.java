@@ -18,19 +18,19 @@
 
 package plugins.fab.spotDetector.detector;
 
-import org.bioimageanalysis.extension.kernel.roi.roi2d.ROI2DRectangle;
-import org.bioimageanalysis.icy.common.collection.array.Array1DUtil;
-import org.bioimageanalysis.icy.common.collection.array.ArrayUtil;
-import org.bioimageanalysis.icy.common.type.DataType;
-import org.bioimageanalysis.icy.gui.dialog.MessageDialog;
-import org.bioimageanalysis.icy.model.image.IcyBufferedImage;
-import org.bioimageanalysis.icy.model.roi.ROI;
-import org.bioimageanalysis.icy.model.roi.mask.BooleanMask2D;
-import org.bioimageanalysis.icy.model.sequence.Sequence;
-import org.bioimageanalysis.icy.model.sequence.VolumetricImage;
-import org.bioimageanalysis.icy.system.SystemUtil;
-import org.bioimageanalysis.icy.system.logging.IcyLogger;
-import org.bioimageanalysis.icy.system.thread.Processor;
+import fr.icy.extension.kernel.roi.roi2d.ROI2DRectangle;
+import fr.icy.common.collection.array.Array1DUtil;
+import fr.icy.common.collection.array.ArrayUtil;
+import fr.icy.common.type.DataType;
+import fr.icy.gui.dialog.MessageDialog;
+import fr.icy.model.image.IcyBufferedImage;
+import fr.icy.model.roi.ROI;
+import fr.icy.model.roi.mask.BooleanMask2D;
+import fr.icy.model.sequence.Sequence;
+import fr.icy.model.sequence.VolumetricImage;
+import fr.icy.system.SystemUtil;
+import fr.icy.system.logging.IcyLogger;
+import fr.icy.system.thread.Processor;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

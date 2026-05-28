@@ -18,12 +18,13 @@
 
 package plugins.fab.spotDetector;
 
-import org.bioimageanalysis.icy.extension.plugin.PluginDescriptor;
-import org.bioimageanalysis.icy.extension.plugin.PluginLoader;
-import org.bioimageanalysis.icy.extension.plugin.abstract_.Plugin;
-import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import fr.icy.extension.ExtensionLoader;
+import fr.icy.extension.plugin.PluginDescriptor;
+import fr.icy.extension.plugin.abstract_.Plugin;
+import fr.icy.system.logging.IcyLogger;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.input.InputDetectionAbstract;
+import plugins.fab.spotDetector.input.currentSequenceInputDetection;
 
 import javax.swing.*;
 import java.awt.*;
@@ -66,13 +67,12 @@ public class InputPanel extends GeneralSpotDetectionPanel implements ActionListe
     private void buildInputChoice() {
         inputChoice.removeAll();
 
-        for (final PluginDescriptor pluginDescriptor : PluginLoader.getPlugins()) {
+        for (final PluginDescriptor pluginDescriptor : ExtensionLoader.getPlugins(InputDetectionAbstract.class, false, false)) {
             if (pluginDescriptor.isInstanceOf(InputDetectionAbstract.class))
                 if (!pluginDescriptor.isAbstract()) {
                     inputChoice.addItem(pluginDescriptor);
-                    //System.out.println( pluginDescriptor.getName() );
                     // set default input plugin
-                    if (pluginDescriptor.getName().contains("currentSequenceInputDetection")) // TODO: minor fix here
+                    if (pluginDescriptor.getClassName().equalsIgnoreCase(currentSequenceInputDetection.class.getName()))
                     {
                         inputChoice.setSelectedItem(pluginDescriptor);
                     }
@@ -83,25 +83,25 @@ public class InputPanel extends GeneralSpotDetectionPanel implements ActionListe
     /**
      * refresh interface and reinstanciate processor
      */
-    private void refreshInterface() {
+    private void refreshInterface() throws NullPointerException {
         //System.out.println("input choice");
 
-        final PluginDescriptor pluginDescriptor = (PluginDescriptor) inputChoice.getSelectedItem();
+        final PluginDescriptor pluginDescriptor = (PluginDescriptor) Objects.requireNonNull(inputChoice.getSelectedItem(), "No input plugin selected");
         //System.out.println(pluginDescriptor.getName());
 
         pluginPanel.removeAll();
 
         Plugin plugin = null;
         try {
-            plugin = Objects.requireNonNull(pluginDescriptor).getPluginClass().getDeclaredConstructor().newInstance();
+            plugin = pluginDescriptor.getPluginClass().getDeclaredConstructor().newInstance();
         }
         catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e1) {
             IcyLogger.error(this.getClass(), e1);
         }
 
-        inputDetection = (InputDetectionAbstract) plugin;
+        inputDetection = (InputDetectionAbstract) Objects.requireNonNull(plugin, "No input plugin found");
         // FIXME : create a listener instead of this
-        Objects.requireNonNull(inputDetection).spotDetector = spotDetector;
+        inputDetection.spotDetector = spotDetector;
 
         pluginPanel.add(inputDetection.getPanel(), BorderLayout.CENTER);
         pluginPanel.updateUI();

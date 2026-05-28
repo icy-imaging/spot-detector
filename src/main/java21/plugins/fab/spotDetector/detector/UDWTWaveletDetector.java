@@ -19,11 +19,11 @@
 package plugins.fab.spotDetector.detector;
 
 import org.apache.poi.ss.usermodel.Sheet;
-import org.bioimageanalysis.icy.Icy;
-import org.bioimageanalysis.icy.gui.GuiUtil;
-import org.bioimageanalysis.icy.io.xls.XLSXUtil;
-import org.bioimageanalysis.icy.model.image.ImageUtil;
-import org.bioimageanalysis.icy.model.roi.ROI;
+import fr.icy.Icy;
+import fr.icy.gui.GuiUtil;
+import fr.icy.io.xls.XLSXUtil;
+import fr.icy.model.image.ImageUtil;
+import fr.icy.model.roi.ROI;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 import plugins.fab.spotDetector.detector.wavelets.UDWT.B3SplineUDWT;

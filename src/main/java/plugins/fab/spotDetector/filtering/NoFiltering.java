@@ -19,7 +19,7 @@
 package plugins.fab.spotDetector.filtering;
 
 import org.apache.poi.ss.usermodel.Sheet;
-import org.bioimageanalysis.icy.gui.GuiUtil;
+import fr.icy.gui.GuiUtil;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 
 import javax.swing.*;

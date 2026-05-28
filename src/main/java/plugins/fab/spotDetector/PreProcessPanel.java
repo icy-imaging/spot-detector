@@ -18,10 +18,10 @@
 
 package plugins.fab.spotDetector;
 
-import org.bioimageanalysis.icy.extension.plugin.PluginDescriptor;
-import org.bioimageanalysis.icy.extension.plugin.PluginLoader;
-import org.bioimageanalysis.icy.extension.plugin.abstract_.Plugin;
-import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import fr.icy.extension.ExtensionLoader;
+import fr.icy.extension.plugin.PluginDescriptor;
+import fr.icy.extension.plugin.abstract_.Plugin;
+import fr.icy.system.logging.IcyLogger;
 import plugins.fab.spotDetector.preProcessing.PreProcessingAbstract;
 
 import javax.swing.*;
@@ -66,7 +66,7 @@ public class PreProcessPanel extends GeneralSpotDetectionPanel implements Action
     private void buildInputChoice() {
         preProcessorChoice.removeAll();
 
-        for (final PluginDescriptor pluginDescriptor : PluginLoader.getPlugins()) {
+        for (final PluginDescriptor pluginDescriptor : ExtensionLoader.getPlugins(PreProcessingAbstract.class, false, false)) {
             if (pluginDescriptor.isInstanceOf(PreProcessingAbstract.class))
                 if (!pluginDescriptor.isAbstract()) {
                     preProcessorChoice.addItem(pluginDescriptor);

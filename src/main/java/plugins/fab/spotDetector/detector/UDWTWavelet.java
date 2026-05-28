@@ -18,10 +18,10 @@
 
 package plugins.fab.spotDetector.detector;
 
-import org.bioimageanalysis.icy.model.roi.ROI;
-import org.bioimageanalysis.icy.model.sequence.Sequence;
-import org.bioimageanalysis.icy.model.sequence.SequenceUtil;
-import org.bioimageanalysis.icy.system.thread.ThreadUtil;
+import fr.icy.model.roi.ROI;
+import fr.icy.model.sequence.Sequence;
+import fr.icy.model.sequence.SequenceUtil;
+import fr.icy.system.thread.ThreadUtil;
 import plugins.fab.spotDetector.DetectionSpot;
 
 import java.util.ArrayList;

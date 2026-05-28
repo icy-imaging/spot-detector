@@ -18,15 +18,15 @@
 
 package plugins.fab.spotDetector.detector;
 
-import org.bioimageanalysis.extension.kernel.roi.roi2d.ROI2DArea;
-import org.bioimageanalysis.extension.kernel.roi.roi3d.ROI3DArea;
-import org.bioimageanalysis.icy.common.geom.point.Point3D;
-import org.bioimageanalysis.icy.common.geom.point.Point5D;
-import org.bioimageanalysis.icy.model.roi.ROI;
-import org.bioimageanalysis.icy.model.roi.mask.BooleanMask3D;
-import org.bioimageanalysis.icy.system.SystemUtil;
-import org.bioimageanalysis.icy.system.logging.IcyLogger;
-import org.bioimageanalysis.icy.system.thread.Processor;
+import fr.icy.extension.kernel.roi.roi2d.ROI2DArea;
+import fr.icy.extension.kernel.roi.roi3d.ROI3DArea;
+import fr.icy.common.geom.point.Point3D;
+import fr.icy.common.geom.point.Point5D;
+import fr.icy.model.roi.ROI;
+import fr.icy.model.roi.mask.BooleanMask3D;
+import fr.icy.system.SystemUtil;
+import fr.icy.system.logging.IcyLogger;
+import fr.icy.system.thread.Processor;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.DetectionSpot;
 

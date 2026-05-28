@@ -18,10 +18,10 @@
 
 package plugins.fab.spotDetector.detector;
 
-import org.bioimageanalysis.icy.common.collection.array.Array1DUtil;
-import org.bioimageanalysis.icy.common.type.DataType;
-import org.bioimageanalysis.icy.model.image.IcyBufferedImage;
-import org.bioimageanalysis.icy.model.sequence.Sequence;
+import fr.icy.common.collection.array.Array1DUtil;
+import fr.icy.common.type.DataType;
+import fr.icy.model.image.IcyBufferedImage;
+import fr.icy.model.sequence.Sequence;
 import org.jetbrains.annotations.NotNull;
 
 import javax.vecmath.Point3i;

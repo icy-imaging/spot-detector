@@ -19,7 +19,7 @@
 package plugins.fab.spotDetector;
 
 import org.apache.poi.ss.usermodel.Sheet;
-import org.bioimageanalysis.icy.extension.plugin.abstract_.Plugin;
+import fr.icy.extension.plugin.abstract_.Plugin;
 
 import javax.swing.*;
 

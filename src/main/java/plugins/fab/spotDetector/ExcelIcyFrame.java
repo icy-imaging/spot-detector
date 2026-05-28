@@ -19,8 +19,8 @@
 package plugins.fab.spotDetector;
 
 import org.apache.poi.ss.usermodel.Sheet;
-import org.bioimageanalysis.icy.gui.frame.IcyFrame;
-import org.bioimageanalysis.icy.system.thread.ThreadUtil;
+import fr.icy.gui.frame.IcyFrame;
+import fr.icy.system.thread.ThreadUtil;
 
 /**
  * @author Fabrice de Chaumont

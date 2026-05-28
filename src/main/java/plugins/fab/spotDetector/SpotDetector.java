@@ -18,18 +18,18 @@
 
 package plugins.fab.spotDetector;
 
-import org.bioimageanalysis.icy.extension.plugin.PluginDescriptor;
-import org.bioimageanalysis.icy.extension.plugin.abstract_.PluginActionable;
-import org.bioimageanalysis.icy.extension.plugin.annotation_.IcyPluginName;
-import org.bioimageanalysis.icy.gui.GuiUtil;
-import org.bioimageanalysis.icy.gui.frame.IcyFrame;
-import org.bioimageanalysis.icy.gui.frame.IcyFrameEvent;
-import org.bioimageanalysis.icy.gui.frame.IcyFrameListener;
-import org.bioimageanalysis.icy.gui.frame.progress.AnnounceFrame;
-import org.bioimageanalysis.icy.gui.frame.progress.FailedAnnounceFrame;
-import org.bioimageanalysis.icy.network.NetworkUtil;
-import org.bioimageanalysis.icy.system.logging.IcyLogger;
-import org.bioimageanalysis.icy.system.thread.ThreadUtil;
+import fr.icy.extension.plugin.PluginDescriptor;
+import fr.icy.extension.plugin.abstract_.PluginActionable;
+import fr.icy.extension.plugin.annotation_.IcyPluginName;
+import fr.icy.gui.GuiUtil;
+import fr.icy.gui.frame.IcyFrame;
+import fr.icy.gui.frame.IcyFrameEvent;
+import fr.icy.gui.frame.IcyFrameListener;
+import fr.icy.gui.frame.progress.AnnounceFrame;
+import fr.icy.gui.frame.progress.FailedAnnounceFrame;
+import fr.icy.network.NetworkUtil;
+import fr.icy.system.logging.IcyLogger;
+import fr.icy.system.thread.ThreadUtil;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.ROITagger.TagPainterManager;
 

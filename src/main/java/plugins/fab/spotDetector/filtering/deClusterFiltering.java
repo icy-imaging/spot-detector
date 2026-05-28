@@ -19,10 +19,10 @@
 package plugins.fab.spotDetector.filtering;
 
 import org.apache.poi.ss.usermodel.Sheet;
-import org.bioimageanalysis.icy.gui.GuiUtil;
-import org.bioimageanalysis.icy.gui.component.ComponentUtil;
-import org.bioimageanalysis.icy.model.roi.ROI;
-import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import fr.icy.gui.GuiUtil;
+import fr.icy.gui.component.ComponentUtil;
+import fr.icy.model.roi.ROI;
+import fr.icy.system.logging.IcyLogger;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.DetectionSpot;

@@ -18,8 +18,8 @@
 
 package plugins.fab.spotDetector.detector;
 
-import org.bioimageanalysis.icy.common.collection.array.Array1DUtil;
-import org.bioimageanalysis.icy.model.image.IcyBufferedImage;
+import fr.icy.common.collection.array.Array1DUtil;
+import fr.icy.model.image.IcyBufferedImage;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.DetectionSpot;
 import plugins.fab.spotDetector.Point3D;

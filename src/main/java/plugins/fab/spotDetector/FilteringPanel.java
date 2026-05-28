@@ -18,10 +18,10 @@
 
 package plugins.fab.spotDetector;
 
-import org.bioimageanalysis.icy.extension.plugin.PluginDescriptor;
-import org.bioimageanalysis.icy.extension.plugin.PluginLoader;
-import org.bioimageanalysis.icy.extension.plugin.abstract_.Plugin;
-import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import fr.icy.extension.ExtensionLoader;
+import fr.icy.extension.plugin.PluginDescriptor;
+import fr.icy.extension.plugin.abstract_.Plugin;
+import fr.icy.system.logging.IcyLogger;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.filtering.FilteringDetectionAbstract;
 import plugins.fab.spotDetector.filtering.NoFiltering;
@@ -58,7 +58,7 @@ public class FilteringPanel extends GeneralSpotDetectionPanel implements ActionL
     private void buildInputChoice() {
         inputChoice.removeAll();
 
-        for (final PluginDescriptor pluginDescriptor : PluginLoader.getPlugins()) {
+        for (final PluginDescriptor pluginDescriptor : ExtensionLoader.getPlugins(FilteringDetectionAbstract.class, false, false)) {
             if (pluginDescriptor.isInstanceOf(FilteringDetectionAbstract.class))
                 if (!pluginDescriptor.isAbstract()) {
                     inputChoice.addItem(pluginDescriptor);

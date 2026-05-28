@@ -18,11 +18,11 @@
 
 package plugins.fab.spotDetector;
 
-import org.bioimageanalysis.icy.extension.plugin.PluginDescriptor;
-import org.bioimageanalysis.icy.extension.plugin.PluginLoader;
-import org.bioimageanalysis.icy.extension.plugin.abstract_.Plugin;
-import org.bioimageanalysis.icy.model.roi.ROI;
-import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import fr.icy.extension.ExtensionLoader;
+import fr.icy.extension.plugin.PluginDescriptor;
+import fr.icy.extension.plugin.abstract_.Plugin;
+import fr.icy.model.roi.ROI;
+import fr.icy.system.logging.IcyLogger;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.roi.ROIDetectionAbstract;
 
@@ -59,7 +59,7 @@ public class ROIPanel extends GeneralSpotDetectionPanel implements ActionListene
     private void buildInputChoice() {
         inputChoice.removeAll();
 
-        for (final PluginDescriptor pluginDescriptor : PluginLoader.getPlugins()) {
+        for (final PluginDescriptor pluginDescriptor : ExtensionLoader.getPlugins(ROIDetectionAbstract.class, false, false)) {
             if (pluginDescriptor.isInstanceOf(ROIDetectionAbstract.class))
                 if (!pluginDescriptor.isAbstract()) {
                     inputChoice.addItem(pluginDescriptor);

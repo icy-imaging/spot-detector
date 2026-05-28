@@ -19,12 +19,12 @@
 package plugins.fab.spotDetector.roi;
 
 import org.apache.poi.ss.usermodel.Sheet;
-import org.bioimageanalysis.extension.kernel.roi.roi2d.ROI2DRectangle;
-import org.bioimageanalysis.icy.Icy;
-import org.bioimageanalysis.icy.gui.GuiUtil;
-import org.bioimageanalysis.icy.gui.listener.GlobalSequenceListener;
-import org.bioimageanalysis.icy.model.roi.ROI;
-import org.bioimageanalysis.icy.model.sequence.Sequence;
+import fr.icy.extension.kernel.roi.roi2d.ROI2DRectangle;
+import fr.icy.Icy;
+import fr.icy.gui.GuiUtil;
+import fr.icy.gui.listener.GlobalSequenceListener;
+import fr.icy.model.roi.ROI;
+import fr.icy.model.sequence.Sequence;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.DetectionSpot;
 import plugins.fab.spotDetector.GlobalDetectionToken;

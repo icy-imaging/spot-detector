@@ -18,7 +18,7 @@
 
 package plugins.fab.spotDetector.filtering;
 
-import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import fr.icy.system.logging.IcyLogger;
 
 import javax.swing.*;
 import java.awt.*;

@@ -20,7 +20,7 @@ package plugins.fab.spotDetector;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import fr.icy.system.logging.IcyLogger;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

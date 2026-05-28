@@ -18,8 +18,8 @@
 
 package plugins.fab.spotDetector;
 
-import org.bioimageanalysis.icy.gui.GuiUtil;
-import org.bioimageanalysis.icy.network.NetworkUtil;
+import fr.icy.gui.GuiUtil;
+import fr.icy.network.NetworkUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

@@ -19,12 +19,12 @@
 package plugins.fab.spotDetector.input;
 
 import org.apache.poi.ss.usermodel.Sheet;
-import org.bioimageanalysis.icy.Icy;
-import org.bioimageanalysis.icy.gui.GuiUtil;
-import org.bioimageanalysis.icy.gui.frame.progress.ProgressFrame;
-import org.bioimageanalysis.icy.io.FileUtil;
-import org.bioimageanalysis.icy.io.Loader;
-import org.bioimageanalysis.icy.system.logging.IcyLogger;
+import fr.icy.Icy;
+import fr.icy.gui.GuiUtil;
+import fr.icy.gui.frame.progress.ProgressFrame;
+import fr.icy.io.FileUtil;
+import fr.icy.io.Loader;
+import fr.icy.system.logging.IcyLogger;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 import plugins.fab.spotDetector.GlobalDetectionTokenListener;
