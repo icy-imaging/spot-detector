@@ -21,7 +21,6 @@ package plugins.fab.spotDetector;
 import fr.icy.extension.ExtensionLoader;
 import fr.icy.extension.plugin.PluginDescriptor;
 import fr.icy.extension.plugin.abstract_.Plugin;
-import fr.icy.system.logging.IcyLogger;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.filtering.FilteringDetectionAbstract;
 import plugins.fab.spotDetector.filtering.NoFiltering;
@@ -32,8 +31,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FilteringPanel extends GeneralSpotDetectionPanel implements ActionListener {
+    private static final Logger LOGGER = Logger.getLogger(FilteringPanel.class.getName());
+
     JComboBox<PluginDescriptor> inputChoice = new JComboBox<>();
     JPanel pluginPanel = new JPanel();
     FilteringDetectionAbstract filteringDetection = null;
@@ -82,7 +85,8 @@ public class FilteringPanel extends GeneralSpotDetectionPanel implements ActionL
             plugin = Objects.requireNonNull(pluginDescriptor).getPluginClass().getDeclaredConstructor().newInstance();
         }
         catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e1) {
-            IcyLogger.error(this.getClass(), e1);
+            if (LOGGER.isLoggable(Level.SEVERE))
+                LOGGER.log(Level.SEVERE, "Unable to instantiate plugin", e1);
         }
 
         filteringDetection = (FilteringDetectionAbstract) plugin;

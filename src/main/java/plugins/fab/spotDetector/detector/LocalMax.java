@@ -61,7 +61,7 @@ public class LocalMax {
                 mainLoop:
                 for (i = 0; i < w; i++) //, xyOffset++)
                 {
-                    final double value = Array1DUtil.getValue(array_xy, xyOffset, dataType);
+                    final double value = Array1DUtil.getValueAsDouble(array_xy, xyOffset, dataType);
 
                     xyOffset = j * w + i;
 
@@ -80,11 +80,8 @@ public class LocalMax {
                                                 k + nz < 0 ||
                                                 k + nz >= d) continue neighborhood;
 
-                                if (value <
-                                        Array1DUtil.getValue(
-                                                Array.get(array_z_xy, k + nz),
-                                                xyOffset + nx + ny * w, dataType)
-                                ) continue mainLoop;
+                                if (value < Array1DUtil.getValueAsDouble(Array.get(array_z_xy, k + nz), xyOffset + nx + ny * w, dataType))
+                                    continue mainLoop;
 
 //								Array.get(array_z_xy, nz),
 //								xyOffset + nx + ny * w, dataType)

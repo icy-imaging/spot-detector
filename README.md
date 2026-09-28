@@ -1,4 +1,4 @@
-![Version 2.0.0 alpha 7](https://img.shields.io/badge/v2.0.0-alpha_7-royalblue)
+![Version 2.0.0 alpha 8](https://img.shields.io/badge/v2.0.0-alpha_8-royalblue)
 ![Java 17+](https://img.shields.io/badge/OpenJDK-17+-5382A1?labelColor=E76F00)
 [![License: LGPL v3](https://img.shields.io/badge/LGPLv3-008033?logo=GPLv3&logoSize=auto)](https://www.gnu.org/licenses/lgpl-3.0)
 [![Twitter](https://img.shields.io/twitter/follow/Icy_BioImaging)](https://x.com/Icy_BioImaging)
@@ -14,19 +14,17 @@ Icy is developed and maintained by [Biological Image Analysis unit at Institut P
 Spot detector detects and counts spots.
 
 - Detects spots in noisy images 2D/3D.
-- Depending on objective, spots can be nuclei, nucleus or cell
-- Versatile input: sequence or batch of file.
-- Detects spot in specific band/channel.
-- Multi band labeling: automaticaly creates ROIs from one band and count in the same or an other band.
+- Depending on the goal, spots can be nuclei, nucleus or cell
+- Versatile input: sequence or batch of files.
+- Detects spot in a specific band or channel.
+- Multi band labeling: automatically creates ROIs from one band and count in the same or another band.
 - Filters detection by size.
 - Sort detection by ROIs
-- Output data in XLS Excel files: number of detection by ROIs, and each detection location and size.
+- Output data in XLS Excel files: amount of detection by ROIs, and each detection location and size.
 - Outputs withness image with ROIs and detection painted on it.
 - Outputs binary detection image.
 - Displays detections
 - Displays tags
-
-More detailed user documentation can be found on the Spot Detector documentation page on the Icy website: https://icy.bioimageanalysis.org/plugins/spot-detector/
 
 ## Installation instructions
 
@@ -51,9 +49,9 @@ More detailed user documentation can be found on the Spot Detector documentation
 Add this dependency block in your `pom.xml`
 ```xml
 <dependency>
-    <groupId>fr.icy.extensions</groupId>
+    <groupId>fr.icy.extension</groupId>
     <artifactId>spot-detector</artifactId>
-    <version>${fr.icy.extensions.spot-detector.version}</version>
+    <version>${fr.icy.extension.spot-detector.version}</version>
 </dependency>
 ```
 

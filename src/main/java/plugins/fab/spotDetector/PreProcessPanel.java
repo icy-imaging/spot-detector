@@ -21,7 +21,6 @@ package plugins.fab.spotDetector;
 import fr.icy.extension.ExtensionLoader;
 import fr.icy.extension.plugin.PluginDescriptor;
 import fr.icy.extension.plugin.abstract_.Plugin;
-import fr.icy.system.logging.IcyLogger;
 import plugins.fab.spotDetector.preProcessing.PreProcessingAbstract;
 
 import javax.swing.*;
@@ -30,8 +29,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PreProcessPanel extends GeneralSpotDetectionPanel implements ActionListener {
+    private static final Logger LOGGER = Logger.getLogger(PreProcessPanel.class.getName());
+
     JComboBox<PluginDescriptor> preProcessorChoice = new JComboBox<>();
     JPanel pluginPanel = new JPanel();
 
@@ -92,7 +95,9 @@ public class PreProcessPanel extends GeneralSpotDetectionPanel implements Action
             plugin = Objects.requireNonNull(pluginDescriptor).getPluginClass().getDeclaredConstructor().newInstance();
         }
         catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e1) {
-            IcyLogger.error(this.getClass(), e1);
+            if (LOGGER.isLoggable(Level.SEVERE))
+                LOGGER.log(Level.SEVERE, "Cannot instantiate plugin", e1);
+            return;
         }
 
         preProcessorDetection = (PreProcessingAbstract) plugin;

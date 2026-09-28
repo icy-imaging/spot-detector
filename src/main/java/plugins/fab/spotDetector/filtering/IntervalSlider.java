@@ -18,12 +18,13 @@
 
 package plugins.fab.spotDetector.filtering;
 
-import fr.icy.system.logging.IcyLogger;
+import fr.icy.shared.logging.CustomLevel;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 /**
  * Creates a slider for int intervals.
@@ -31,6 +32,8 @@ import java.util.ArrayList;
  * @author Fabrice de Chaumont
  */
 public class IntervalSlider extends JPanel implements MouseListener, MouseMotionListener {
+    private static final Logger LOGGER = Logger.getLogger(IntervalSlider.class.getName());
+
     int min;
     int max;
     int currentLowValue;
@@ -134,7 +137,9 @@ public class IntervalSlider extends JPanel implements MouseListener, MouseMotion
 
     public void setCurrentHighValue(final int value) {
         if (value >= currentLowValue) {
-            IcyLogger.debug(this.getClass(), "Current value: " + value);
+            if (LOGGER.isLoggable(CustomLevel.DEBUG)) {
+                LOGGER.log(CustomLevel.DEBUG, "Current value: " + value);
+            }
             currentHighValue = value;
             repaint();
             fireAction();

@@ -18,13 +18,13 @@
 
 package plugins.fab.spotDetector.input;
 
-import org.apache.poi.ss.usermodel.Sheet;
 import fr.icy.Icy;
 import fr.icy.gui.GuiUtil;
 import fr.icy.gui.frame.progress.ProgressFrame;
 import fr.icy.io.FileUtil;
 import fr.icy.io.Loader;
-import fr.icy.system.logging.IcyLogger;
+import fr.icy.shared.logging.CustomLevel;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.GlobalDetectionToken;
 import plugins.fab.spotDetector.GlobalDetectionTokenListener;
@@ -38,9 +38,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
 public class batchInputDetection extends InputDetectionAbstract implements ActionListener, GlobalDetectionTokenListener {
+    private static final Logger LOGGER = Logger.getLogger(batchInputDetection.class.getName());
+
     JButton inputFolderButton = new JButton("No folder selected");
     JLabel fileToProcessLabel = new JLabel("no files to process");
     ArrayList<File> originalFileToProcessArrayList = new ArrayList<>(); // never altered but by the user himself
@@ -127,7 +130,8 @@ public class batchInputDetection extends InputDetectionAbstract implements Actio
     }
 
     public void scanDir(final @NotNull File directory) {
-        IcyLogger.debug(this.getClass(), "Scanning directory: " + directory.getAbsolutePath());
+        if (LOGGER.isLoggable(CustomLevel.DEBUG))
+            LOGGER.log(CustomLevel.DEBUG, "Scanning directory: " + directory.getAbsolutePath());
 
         final List<File> listImages;
 

@@ -20,7 +20,6 @@ package plugins.fab.spotDetector;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Sheet;
-import fr.icy.system.logging.IcyLogger;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +27,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Display a writableSheet in an Excel-like Grid.
@@ -35,6 +36,8 @@ import javax.swing.table.TableModel;
  * @author Fabrice de Chaumont
  */
 public class ExcelGrid extends JScrollPane {
+    private static final Logger LOGGER = Logger.getLogger(ExcelGrid.class.getName());
+
     private JTable table;
 
     public ExcelGrid(final Sheet page) {
@@ -108,7 +111,8 @@ public class ExcelGrid extends JScrollPane {
                 };
             }
             catch (final Exception e) {
-                IcyLogger.warn(this.getClass(), e, "Unable to get value at position (" + rowIndex + ", " + columnIndex + ")");
+                if (LOGGER.isLoggable(Level.WARNING))
+                    LOGGER.log(Level.WARNING, "Unable to get value at position (" + rowIndex + ", " + columnIndex + ")", e);
             }
             return null;
         }

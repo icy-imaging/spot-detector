@@ -20,15 +20,18 @@ package plugins.fab.spotDetector.filtering;
 
 import fr.icy.gui.GuiUtil;
 import fr.icy.gui.component.ComponentUtil;
-import fr.icy.system.logging.IcyLogger;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class IntervalSliderValue extends JPanel implements ActionListener {
+    private static final Logger LOGGER = Logger.getLogger(IntervalSliderValue.class.getName());
+
     IntervalSlider intervalSlider;
     JTextField minTextField = new JTextField("");
     JTextField maxTextField = new JTextField("");
@@ -67,7 +70,8 @@ public class IntervalSliderValue extends JPanel implements ActionListener {
                 intervalSlider.setCurrentLowValue(min);
             }
             catch (final Exception e1) {
-                IcyLogger.error(this.getClass(), e1);
+                if (LOGGER.isLoggable(Level.SEVERE))
+                    LOGGER.log(Level.SEVERE, "An error occurred.", e1);
             }
         }
 
@@ -77,7 +81,8 @@ public class IntervalSliderValue extends JPanel implements ActionListener {
                 intervalSlider.setCurrentHighValue(max);
             }
             catch (final Exception e1) {
-                IcyLogger.error(this.getClass(), e1);
+                if (LOGGER.isLoggable(Level.SEVERE))
+                    LOGGER.log(Level.SEVERE, "An error occurred.", e1);
             }
         }
 

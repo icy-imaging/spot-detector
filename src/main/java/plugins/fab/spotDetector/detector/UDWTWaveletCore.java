@@ -29,7 +29,6 @@ import fr.icy.model.roi.mask.BooleanMask2D;
 import fr.icy.model.sequence.Sequence;
 import fr.icy.model.sequence.VolumetricImage;
 import fr.icy.system.SystemUtil;
-import fr.icy.system.logging.IcyLogger;
 import fr.icy.system.thread.Processor;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +40,7 @@ import plugins.fab.spotDetector.Point3D;
 import plugins.fab.spotDetector.detector.wavelets.UDWT.B3SplineUDWT;
 import plugins.fab.spotDetector.detector.wavelets.UDWT.WaveletConfigException;
 
+import javax.swing.*;
 import javax.vecmath.Point3i;
 import java.awt.*;
 import java.util.ArrayList;
@@ -50,8 +50,12 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class UDWTWaveletCore {
+    private static final Logger LOGGER = Logger.getLogger(UDWTWaveletCore.class.getName());
+
     public class UDWTWaveletCore2DProcessor implements Callable<List<DetectionSpot>> {
         final Sequence sequence;
         final int frame;
@@ -102,7 +106,8 @@ public class UDWTWaveletCore {
                     scales = waveletTransform.b3WaveletScales2D(dataIn, image.getWidth(), image.getHeight(), numScales);
                 }
                 catch (final WaveletConfigException e1) {
-                    IcyLogger.error(this.getClass(), e1);
+                    if (LOGGER.isLoggable(Level.SEVERE))
+                        LOGGER.log(Level.SEVERE, "The wavelet is incorrect for the given image dimension.", e1);
                     return detectionList;
                 }
                 final float[][] coefficients = waveletTransform.b3WaveletCoefficients2D(scales, dataIn, numScales, image.getWidth() * image.getHeight());
@@ -202,7 +207,8 @@ public class UDWTWaveletCore {
                     scales = waveletTransform.b3WaveletScales2D(dataIn, image.getWidth(), image.getHeight(), numScales);
                 }
                 catch (final WaveletConfigException e1) {
-                    IcyLogger.error(this.getClass(), e1);
+                    if (LOGGER.isLoggable(Level.SEVERE))
+                        LOGGER.log(Level.SEVERE, "The wavelet is incorrect for the given image dimension.", e1);
                     return detectionList;
                 }
                 final float[][] coefficients = waveletTransform.b3WaveletCoefficients2D(scales, dataIn, numScales, image.getWidth() * image.getHeight());
@@ -287,11 +293,11 @@ public class UDWTWaveletCore {
 
             final float[][][] scales;
             try {
-                scales = waveletTransform.b3WaveletScales3D(dataIn, sequence.getSizeX(), sequence.getSizeY(),
-                        sequence.getSizeZ(), numScales);
+                scales = waveletTransform.b3WaveletScales3D(dataIn, sequence.getSizeX(), sequence.getSizeY(), sequence.getSizeZ(), numScales);
             }
             catch (final WaveletConfigException e1) {
-                IcyLogger.error(this.getClass(), e1);
+                if (LOGGER.isLoggable(Level.SEVERE))
+                    LOGGER.log(Level.SEVERE, "The wavelet is incorrect for the given image dimension.", e1);
                 return detectionList;
             }
             final float[][][] coefficients = waveletTransform.b3WaveletCoefficients3D(scales, dataIn, numScales, sequence.getSizeX() * sequence.getSizeY(), sequence.getSizeZ());
@@ -471,7 +477,8 @@ public class UDWTWaveletCore {
         //
         if (sequenceIn.getSizeZ() == 1) {
             if (!B3SplineUDWT.isNumberOfScaleOkForImage2D(sequenceIn.getSizeX(), sequenceIn.getSizeY(), getNumberOfMaxEnabledScale())) {
-                IcyLogger.error(this.getClass(), "Scale configuration error.");
+                if (LOGGER.isLoggable(Level.SEVERE))
+                    LOGGER.log(Level.SEVERE, "Scale configuration error.");
                 return detectionList;
             }
 
@@ -485,10 +492,12 @@ public class UDWTWaveletCore {
         // 3D Image ( with the force2DWavelets for 3D enabled )
         //
         if (sequenceIn.getSizeZ() > 1 && force2DWaveletsFor3D) {
-            IcyLogger.info(this.getClass(), "Entering force 2D wavelet for 3D.");
+            if (LOGGER.isLoggable(Level.INFO))
+                LOGGER.log(Level.INFO, "Entering force 2D wavelet for 3D.");
 
             if (!B3SplineUDWT.isNumberOfScaleOkForImage2D(sequenceIn.getSizeX(), sequenceIn.getSizeY(), getNumberOfMaxEnabledScale())) {
-                IcyLogger.error(this.getClass(), "Scale configuration error (your image is too small for this scale)");
+                if (LOGGER.isLoggable(Level.SEVERE))
+                    LOGGER.log(Level.SEVERE, "Scale configuration error (your image is too small for this scale)");
                 return detectionList;
             }
 
@@ -525,7 +534,7 @@ public class UDWTWaveletCore {
                                 + "<br>In this case, each 2D slices will be computed separately and results will be merged to create the resulting stack,"
                                 + "<br>(and you don't need to add more Z slices)," + "<br>The sequence file name is: "
                                 + sequenceIn.getFilename() + "</center></html>",
-                        MessageDialog.WARNING_MESSAGE);
+                        JOptionPane.WARNING_MESSAGE);
 
                 return detectionList;
             }
@@ -562,7 +571,8 @@ public class UDWTWaveletCore {
                 catch (final ExecutionException e) {
                     // display it only once
                     if (!exception) {
-                        IcyLogger.error(this.getClass(), e);
+                        if (LOGGER.isLoggable(Level.SEVERE))
+                            LOGGER.log(Level.SEVERE, "An error occurred during the computation.", e);
                         exception = true;
                     }
                 }
@@ -752,7 +762,7 @@ public class UDWTWaveletCore {
                 data = originalSequence.getDataXY(detection.getT(), (int) point.z, 0);
             }
 
-            final double value = Array1DUtil.getValue(Objects.requireNonNull(data), ((int) point.y * w) + (int) point.x, signed);
+            final double value = Array1DUtil.getValueAsDouble(Objects.requireNonNull(data), ((int) point.y * w) + (int) point.x, signed);
 
             if (value < minIntensity)
                 minIntensity = value;

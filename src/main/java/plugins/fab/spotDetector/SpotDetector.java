@@ -28,7 +28,6 @@ import fr.icy.gui.frame.IcyFrameListener;
 import fr.icy.gui.frame.progress.AnnounceFrame;
 import fr.icy.gui.frame.progress.FailedAnnounceFrame;
 import fr.icy.network.NetworkUtil;
-import fr.icy.system.logging.IcyLogger;
 import fr.icy.system.thread.ThreadUtil;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.ROITagger.TagPainterManager;
@@ -45,6 +44,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Spot detector
@@ -53,6 +54,8 @@ import java.util.List;
  */
 @IcyPluginName("Spot Detector")
 public class SpotDetector extends PluginActionable implements TreeSelectionListener, ActionListener, IcyFrameListener {
+    private static final Logger LOGGER = Logger.getLogger(SpotDetector.class.getName());
+
     IcyFrame icyFrame;
     private JTree tree;
     private final JPanel rightPanel = new JPanel();
@@ -277,7 +280,7 @@ public class SpotDetector extends PluginActionable implements TreeSelectionListe
         }
 
         if (e.getSource() == helpButton) {
-            NetworkUtil.openBrowser(getDescriptor().getWeb());
+            //NetworkUtil.openBrowser(getDescriptor().getWeb());
         }
     }
 
@@ -342,7 +345,8 @@ public class SpotDetector extends PluginActionable implements TreeSelectionListe
                 new FailedAnnounceFrame(e.getMessage());
             }
             catch (final Exception e) {
-                IcyLogger.error(this.getClass(), e);
+                if (LOGGER.isLoggable(Level.SEVERE))
+                    LOGGER.log(Level.SEVERE, "An error occurred during processing", e);
             }
             finally {
                 annonceFrame.close();

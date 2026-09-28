@@ -21,7 +21,7 @@ package plugins.fab.spotDetector;
 import fr.icy.extension.ExtensionLoader;
 import fr.icy.extension.plugin.PluginDescriptor;
 import fr.icy.extension.plugin.abstract_.Plugin;
-import fr.icy.system.logging.IcyLogger;
+import fr.icy.shared.logging.CustomLevel;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.display.DisplayDetectionAbstract;
 
@@ -31,8 +31,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DisplayDetectionPanel extends GeneralSpotDetectionPanel implements ActionListener {
+    private static final Logger LOGGER = Logger.getLogger(DisplayDetectionPanel.class.getName());
+
     JComboBox<PluginDescriptor> inputChoice = new JComboBox<>();
     JPanel pluginPanel = new JPanel();
 
@@ -92,7 +96,9 @@ public class DisplayDetectionPanel extends GeneralSpotDetectionPanel implements 
      * refresh interface and re-instantiate processor
      */
     private void refreshInterface() {
-        IcyLogger.debug(this.getClass(), "display detection choice");
+        if (LOGGER.isLoggable(CustomLevel.DEBUG)) {
+            LOGGER.log(CustomLevel.DEBUG, "display detection choice");
+        }
 
         final PluginDescriptor pluginDescriptor = (PluginDescriptor) inputChoice.getSelectedItem();
 
@@ -103,7 +109,9 @@ public class DisplayDetectionPanel extends GeneralSpotDetectionPanel implements 
             plugin = Objects.requireNonNull(pluginDescriptor).getPluginClass().getDeclaredConstructor().newInstance();
         }
         catch (final InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e1) {
-            IcyLogger.error(this.getClass(), e1);
+            if (LOGGER.isLoggable(Level.SEVERE)) {
+                LOGGER.log(Level.SEVERE, "Error instantiating plugin", e1);
+            }
         }
 
         displayDetectionPlugin = (DisplayDetectionAbstract) plugin;

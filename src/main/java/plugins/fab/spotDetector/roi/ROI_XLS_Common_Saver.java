@@ -18,6 +18,7 @@
 
 package plugins.fab.spotDetector.roi;
 
+import fr.icy.common.type.TypeUtil;
 import org.apache.poi.ss.usermodel.Sheet;
 import fr.icy.extension.kernel.roi.descriptor.measure.ROIInteriorDescriptor;
 import fr.icy.io.xls.XLSXUtil;
@@ -172,6 +173,6 @@ public class ROI_XLS_Common_Saver {
     }
 
     static int computeROISurface(final ROI roi) throws InterruptedException {
-        return (int) ROIInteriorDescriptor.computeInterior(roi);
+        return TypeUtil.toInt(ROIInteriorDescriptor.computeInterior(roi));
     }
 }

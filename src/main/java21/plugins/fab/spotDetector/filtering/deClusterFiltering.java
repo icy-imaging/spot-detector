@@ -22,7 +22,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import fr.icy.gui.GuiUtil;
 import fr.icy.gui.component.ComponentUtil;
 import fr.icy.model.roi.ROI;
-import fr.icy.system.logging.IcyLogger;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.DetectionSpot;
@@ -32,8 +31,12 @@ import plugins.fab.spotDetector.Point3D;
 import javax.swing.*;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class deClusterFiltering extends FilteringDetectionAbstract {
+    private static final Logger LOGGER = Logger.getLogger(deClusterFiltering.class.getName());
+
     IntervalSliderValue intervalSize = new IntervalSliderValue(0, 300, 0, 300, "Range of accepted objects (in pixels) (not used)");
     JTextField spotRaySizeTextBox = new JTextField("4");
 
@@ -150,7 +153,9 @@ public class deClusterFiltering extends FilteringDetectionAbstract {
 
     @Override
     public void process(final @NotNull GlobalDetectionToken gdt) {
-        IcyLogger.info(this.getClass(), "Cluster filtering...");
+        if (LOGGER.isLoggable(Level.INFO)) {
+            LOGGER.log(Level.INFO, "Cluster filtering…");
+        }
 
         final double spotRay = Double.parseDouble(spotRaySizeTextBox.getText());
 
@@ -159,10 +164,11 @@ public class deClusterFiltering extends FilteringDetectionAbstract {
         final int surfaceOfOneSpot = (int) getSurfaceOfOneSpot(spotRay);
         final int surfaceOfTwoContiguousSpot = (int) getSurfaceOfTwoContiguousSpot(spotRay);
 
-        IcyLogger.info(this.getClass(), "surface of one spot: " + surfaceOfOneSpot);
-        IcyLogger.info(this.getClass(), "surface of 2 glued spots: " + surfaceOfTwoContiguousSpot);
-        IcyLogger.info(this.getClass(), "difference between the 2:" + (surfaceOfTwoContiguousSpot - surfaceOfOneSpot));
-
+        if (LOGGER.isLoggable(Level.INFO)) {
+            LOGGER.log(Level.INFO, "surface of one spot: " + surfaceOfOneSpot);
+            LOGGER.log(Level.INFO, "surface of 2 glued spots: " + surfaceOfTwoContiguousSpot);
+            LOGGER.log(Level.INFO, "difference between the 2:" + (surfaceOfTwoContiguousSpot - surfaceOfOneSpot));
+        }
 
         final int highValue = surfaceOfOneSpot;
         final int lowValue = 2;
@@ -178,7 +184,9 @@ public class deClusterFiltering extends FilteringDetectionAbstract {
             }
 
         }
-        IcyLogger.info(this.getClass(), "Number of split phase 1: " + nbSplitDetection);
+        if (LOGGER.isLoggable(Level.INFO)) {
+            LOGGER.log(Level.INFO, "Number of split phase 1: " + nbSplitDetection);
+        }
 
         nbSplitDetection = 0;
         // filter the detection gdt.detectionResult dataset
@@ -190,7 +198,9 @@ public class deClusterFiltering extends FilteringDetectionAbstract {
                 filterTest(detectionSpot, detectionList, gdt);
             }
         }
-        IcyLogger.info(this.getClass(), "Number of split phase 2: " + nbSplitDetection);
+        if (LOGGER.isLoggable(Level.INFO)) {
+            LOGGER.log(Level.INFO, "Number of split phase 2: " + nbSplitDetection);
+        }
     }
 
     @Override

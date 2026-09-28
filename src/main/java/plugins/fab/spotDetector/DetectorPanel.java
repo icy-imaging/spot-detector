@@ -20,9 +20,8 @@ package plugins.fab.spotDetector;
 
 import fr.icy.extension.ExtensionLoader;
 import fr.icy.extension.plugin.PluginDescriptor;
-import fr.icy.extension.plugin.PluginLoader;
 import fr.icy.extension.plugin.abstract_.Plugin;
-import fr.icy.system.logging.IcyLogger;
+import fr.icy.shared.logging.CustomLevel;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.detector.DetectorDetectionAbstract;
 
@@ -32,8 +31,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DetectorPanel extends GeneralSpotDetectionPanel implements ActionListener {
+    private static final Logger LOGGER = Logger.getLogger(DetectorPanel.class.getName());
+
     JComboBox<PluginDescriptor> inputChoice = new JComboBox<>();
     JPanel pluginPanel = new JPanel();
     DetectorDetectionAbstract detectorDetection = null;
@@ -79,15 +82,21 @@ public class DetectorPanel extends GeneralSpotDetectionPanel implements ActionLi
     }
 
     public void setDetectorPlugin(final PluginDescriptor detectorPluginDescriptorClass) {
-        IcyLogger.debug(this.getClass(), "Detector set is " + detectorPluginDescriptorClass);
+        if (LOGGER.isLoggable(CustomLevel.DEBUG)) {
+            LOGGER.log(CustomLevel.DEBUG, "Detector set is " + detectorPluginDescriptorClass);
+        }
 
         for (int i = 0; i < inputChoice.getModel().getSize(); i++) {
             final PluginDescriptor pd = inputChoice.getModel().getElementAt(i);
-            IcyLogger.debug(this.getClass(), "*" + pd.getClassName() + "*");
-            IcyLogger.debug(this.getClass(), "*" + detectorPluginDescriptorClass.getClassName() + "*");
+            if (LOGGER.isLoggable(CustomLevel.DEBUG)) {
+                LOGGER.log(CustomLevel.DEBUG, "*" + pd.getClassName() + "*");
+                LOGGER.log(CustomLevel.DEBUG, "*" + detectorPluginDescriptorClass.getClassName() + "*");
+            }
 
             if (pd.getClassName().equals(detectorPluginDescriptorClass.getClassName())) {
-                IcyLogger.debug(this.getClass(), "Match");
+                if (LOGGER.isLoggable(CustomLevel.DEBUG)) {
+                    LOGGER.log(CustomLevel.DEBUG, "Match");
+                }
                 inputChoice.setSelectedItem(pd);
                 break;
             }
@@ -103,7 +112,9 @@ public class DetectorPanel extends GeneralSpotDetectionPanel implements ActionLi
      * refresh interface and reinstanciate processor
      */
     private void refreshInterface(final @NotNull PluginDescriptor pluginDescriptor) {
-        IcyLogger.debug(this.getClass(), "Detector panel : selected plugin is : " + pluginDescriptor.getClassName());
+        if (LOGGER.isLoggable(CustomLevel.DEBUG)) {
+            LOGGER.log(CustomLevel.DEBUG, "Detector panel : selected plugin is : " + pluginDescriptor.getClassName());
+        }
 
         pluginPanel.removeAll();
 
@@ -112,7 +123,9 @@ public class DetectorPanel extends GeneralSpotDetectionPanel implements ActionLi
             plugin = pluginDescriptor.getPluginClass().getDeclaredConstructor().newInstance();
         }
         catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e1) {
-            IcyLogger.error(this.getClass(), e1);
+            if (LOGGER.isLoggable(Level.SEVERE)) {
+                LOGGER.log(Level.SEVERE, "Error while instantiating plugin", e1);
+            }
         }
 
         detectorDetection = (DetectorDetectionAbstract) plugin;

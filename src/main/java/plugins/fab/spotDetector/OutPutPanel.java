@@ -18,6 +18,7 @@
 
 package plugins.fab.spotDetector;
 
+import fr.icy.common.type.TypeUtil;
 import loci.formats.FormatException;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -37,7 +38,6 @@ import fr.icy.model.roi.ROI;
 import fr.icy.model.sequence.Sequence;
 import fr.icy.model.sequence.SequenceUtil;
 import fr.icy.model.swimmingPool.SwimmingObject;
-import fr.icy.system.logging.IcyLogger;
 import fr.icy.system.thread.ThreadUtil;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
@@ -58,8 +58,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class OutPutPanel extends GeneralSpotDetectionPanel {
+    private static final Logger LOGGER = Logger.getLogger(OutPutPanel.class.getName());
+
     JCheckBox exportXLSCheckBox;
     JCheckBox exportXMLCheckBox;
     JCheckBox exportOriginalImageWithROIAndDetection;
@@ -399,7 +403,8 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
                         Saver.saveImage(IcyBufferedImage.createFrom(renderedImage), withnessImageFile, true);
                     }
                     catch (final InterruptedException | FormatException | IOException e) {
-                        IcyLogger.error(this.getClass(), e);
+                        if (LOGGER.isLoggable(Level.SEVERE))
+                            LOGGER.log(Level.SEVERE, "Unable to export original image with ROI and detection", e);
                     }
 
                     viewer.close();
@@ -454,13 +459,14 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
 
                 }
                 catch (final Exception e) {
-                    IcyLogger.error(this.getClass(), e);
-                    try {
+                    if (LOGGER.isLoggable(Level.SEVERE))
+                        LOGGER.log(Level.SEVERE, "Unable to export binary image", e);
+                    /*try {
                         throw e;
                     }
                     catch (final Exception e1) {
                         IcyLogger.error(this.getClass(), e1);
-                    }
+                    }*/
                 }
             });
 
@@ -492,7 +498,8 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
                 Icy.getMainInterface().getSwimmingPool().add(swimmingObject);
             }
             catch (final Exception e) {
-                IcyLogger.error(this.getClass(), e, "Error while creating detection object for swimming pool: is the plugin nchenouard.tracker installed ?");
+                if (LOGGER.isLoggable(Level.SEVERE))
+                    LOGGER.log(Level.SEVERE, "Error while creating detection object for swimming pool: is the plugin nchenouard.tracker installed ?", e);
             }
         }
 
@@ -510,7 +517,7 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
     }
 
     static int computeROISurface(final ROI roi) throws InterruptedException {
-        return (int) ROIInteriorDescriptor.computeInterior(roi);
+        return TypeUtil.toInt(ROIInteriorDescriptor.computeInterior(roi));
     }
 
     // FIXME : sequence should be removed from detection results.
@@ -572,7 +579,8 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
             }
         }
         catch (final IOException e) {
-            IcyLogger.error(this.getClass(), e, "Cannot write the XLS file ! Is it already open in another application ?");
+            if (LOGGER.isLoggable(Level.SEVERE))
+                LOGGER.log(Level.SEVERE, "Cannot write the XLS file ! Is it already open in another application ?", e);
             return;
         }
 
@@ -648,7 +656,8 @@ public class OutPutPanel extends GeneralSpotDetectionPanel {
             XLSXUtil.saveAndClose(workbook, xlsFile);
         }
         catch (final IOException e) {
-            IcyLogger.error(this.getClass(), e, "Cannot write the XLS file ! Is it already open in another application ?");
+            if (LOGGER.isLoggable(Level.SEVERE))
+                LOGGER.log(Level.SEVERE, "Cannot write the XLS file ! Is it already open in another application ?", e);
         }
 
         // xlsManager.SaveAndClose();

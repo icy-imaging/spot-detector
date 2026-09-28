@@ -25,7 +25,6 @@ import fr.icy.common.geom.point.Point5D;
 import fr.icy.model.roi.ROI;
 import fr.icy.model.roi.mask.BooleanMask3D;
 import fr.icy.system.SystemUtil;
-import fr.icy.system.logging.IcyLogger;
 import fr.icy.system.thread.Processor;
 import org.jetbrains.annotations.NotNull;
 import plugins.fab.spotDetector.DetectionSpot;
@@ -35,8 +34,12 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DetectionToROI {
+    private static final Logger LOGGER = Logger.getLogger(DetectionToROI.class.getName());
+
     record DetectionToROIConverter(List<DetectionSpot> spots, int baseIndex) implements Callable<List<ROI>> {
         @Override
         public @NotNull List<ROI> call() {
@@ -102,7 +105,8 @@ public class DetectionToROI {
                 break;
             }
             catch (final ExecutionException e) {
-                IcyLogger.error(DetectionToROI.class, e);
+                if (LOGGER.isLoggable(Level.SEVERE))
+                    LOGGER.log(Level.SEVERE, "Unable to convert detection to ROI.", e);
                 break;
             }
         }
